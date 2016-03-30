@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="GetMultimediaObjectBytes">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sessionId" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="id" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Data0" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Data1" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Data2" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Data3" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="date" type="s:dateTime" />
+            <s:element minOccurs="1" maxOccurs="1" name="requestType" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultimediaObjectBytesResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultimediaObjectBytesResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultimediaObject">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="request" type="tns:GetMultimediaObject_Request" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="GetMultimediaObject_Request">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Data0" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Data1" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Data2" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Data3" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="SessionId" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="RequestSource" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="RequestDate" type="s:dateTime" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="GetMultimediaObjectResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetMultimediaObjectResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="MultimediaObjectUrlClicked">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="request" type="tns:GetMultimediaObject_Request" />
+            <s:element minOccurs="1" maxOccurs="1" name="id" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="statusCode" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="MultimediaObjectUrlClickedResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="MultimediaObjectUrlClickedResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="int" type="s:int" />
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetMultimediaObjectBytesSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultimediaObjectBytes" />
+  </wsdl:message>
+  <wsdl:message name="GetMultimediaObjectBytesSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultimediaObjectBytesResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultimediaObjectSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultimediaObject" />
+  </wsdl:message>
+  <wsdl:message name="GetMultimediaObjectSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultimediaObjectResponse" />
+  </wsdl:message>
+  <wsdl:message name="MultimediaObjectUrlClickedSoapIn">
+    <wsdl:part name="parameters" element="tns:MultimediaObjectUrlClicked" />
+  </wsdl:message>
+  <wsdl:message name="MultimediaObjectUrlClickedSoapOut">
+    <wsdl:part name="parameters" element="tns:MultimediaObjectUrlClickedResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultimediaObjectBytesHttpGetIn">
+    <wsdl:part name="sessionId" type="s:string" />
+    <wsdl:part name="id" type="s:string" />
+    <wsdl:part name="Data0" type="s:string" />
+    <wsdl:part name="Data1" type="s:string" />
+    <wsdl:part name="Data2" type="s:string" />
+    <wsdl:part name="Data3" type="s:string" />
+    <wsdl:part name="date" type="s:string" />
+    <wsdl:part name="requestType" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetMultimediaObjectBytesHttpGetOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="GetMultimediaObjectBytesHttpPostIn">
+    <wsdl:part name="sessionId" type="s:string" />
+    <wsdl:part name="id" type="s:string" />
+    <wsdl:part name="Data0" type="s:string" />
+    <wsdl:part name="Data1" type="s:string" />
+    <wsdl:part name="Data2" type="s:string" />
+    <wsdl:part name="Data3" type="s:string" />
+    <wsdl:part name="date" type="s:string" />
+    <wsdl:part name="requestType" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetMultimediaObjectBytesHttpPostOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:portType name="WebServiceADContentProviderSoap">
+    <wsdl:operation name="GetMultimediaObjectBytes">
+      <wsdl:input message="tns:GetMultimediaObjectBytesSoapIn" />
+      <wsdl:output message="tns:GetMultimediaObjectBytesSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultimediaObject">
+      <wsdl:input message="tns:GetMultimediaObjectSoapIn" />
+      <wsdl:output message="tns:GetMultimediaObjectSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="MultimediaObjectUrlClicked">
+      <wsdl:input message="tns:MultimediaObjectUrlClickedSoapIn" />
+      <wsdl:output message="tns:MultimediaObjectUrlClickedSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="WebServiceADContentProviderHttpGet">
+    <wsdl:operation name="GetMultimediaObjectBytes">
+      <wsdl:input message="tns:GetMultimediaObjectBytesHttpGetIn" />
+      <wsdl:output message="tns:GetMultimediaObjectBytesHttpGetOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="WebServiceADContentProviderHttpPost">
+    <wsdl:operation name="GetMultimediaObjectBytes">
+      <wsdl:input message="tns:GetMultimediaObjectBytesHttpPostIn" />
+      <wsdl:output message="tns:GetMultimediaObjectBytesHttpPostOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="WebServiceADContentProviderSoap" type="tns:WebServiceADContentProviderSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetMultimediaObjectBytes">
+      <soap:operation soapAction="http://tempuri.org/GetMultimediaObjectBytes" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultimediaObject">
+      <soap:operation soapAction="http://tempuri.org/GetMultimediaObject" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="MultimediaObjectUrlClicked">
+      <soap:operation soapAction="http://tempuri.org/MultimediaObjectUrlClicked" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="WebServiceADContentProviderSoap12" type="tns:WebServiceADContentProviderSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetMultimediaObjectBytes">
+      <soap12:operation soapAction="http://tempuri.org/GetMultimediaObjectBytes" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultimediaObject">
+      <soap12:operation soapAction="http://tempuri.org/GetMultimediaObject" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="MultimediaObjectUrlClicked">
+      <soap12:operation soapAction="http://tempuri.org/MultimediaObjectUrlClicked" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="WebServiceADContentProviderHttpGet" type="tns:WebServiceADContentProviderHttpGet">
+    <http:binding verb="GET" />
+    <wsdl:operation name="GetMultimediaObjectBytes">
+      <http:operation location="/GetMultimediaObjectBytes" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="WebServiceADContentProviderHttpPost" type="tns:WebServiceADContentProviderHttpPost">
+    <http:binding verb="POST" />
+    <wsdl:operation name="GetMultimediaObjectBytes">
+      <http:operation location="/GetMultimediaObjectBytes" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="WebServiceADContentProvider">
+    <wsdl:port name="WebServiceADContentProviderSoap" binding="tns:WebServiceADContentProviderSoap">
+      <soap:address location="http://adapp.ec2.pl/AdServerWS/WebServiceADContentProvider.asmx" />
+    </wsdl:port>
+    <wsdl:port name="WebServiceADContentProviderSoap12" binding="tns:WebServiceADContentProviderSoap12">
+      <soap12:address location="http://adapp.ec2.pl/AdServerWS/WebServiceADContentProvider.asmx" />
+    </wsdl:port>
+    <wsdl:port name="WebServiceADContentProviderHttpGet" binding="tns:WebServiceADContentProviderHttpGet">
+      <http:address location="http://adapp.ec2.pl/AdServerWS/WebServiceADContentProvider.asmx" />
+    </wsdl:port>
+    <wsdl:port name="WebServiceADContentProviderHttpPost" binding="tns:WebServiceADContentProviderHttpPost">
+      <http:address location="http://adapp.ec2.pl/AdServerWS/WebServiceADContentProvider.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

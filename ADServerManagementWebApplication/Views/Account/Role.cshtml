@@ -1,0 +1,53 @@
+﻿@using ADServerDAL.Models
+@using EC2
+@model ADServerManagementWebApplication.Models.RoleListViewModel
+
+@{
+	ViewBag.Title = "Role użytkowników";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+@section Filters
+{
+	@Html.AdServerFilter(m => m.Filters.FilterName, true, htmlObject: new { @class = "form-control filter" })
+	@Html.AdServerFilter(m => m.Filters.Com, true, htmlObject: new { @class = "form-control filter" })
+<td class="col-width-180" style="vertical-align: bottom" rowspan="2">
+	<div class="single-filter-div single-filter-div100">
+		<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick="FiltersSort('Account', 'Role', 'ListRole');" />
+		<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick="ClearFilters('Account', 'Role', 'ListRole')" />
+	</div>
+</td>
+}
+@section OverTable
+{
+	@Html.ActionLink("Utwórz nowe uprawnienia", "EditRole", null, new { @class = "btn btn-success" })
+}
+@section Table
+{
+	<tr>
+		@{
+			var url = @Url.Action("Role", "Account");
+		}
+		@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID")
+		@Html.AdServerSegregate("left", url, "Name", @Model.SortAccending, "Nazwa")
+		@Html.AdServerSegregate("center", url, "Commission", @Model.SortAccending, "Prowizja za usługę")
+		<th class="text-center">Akcje</th>
+	</tr>
+
+	@foreach (Role item in Model.Roles)
+	{
+		<tr>
+			<td class="text-right">@item.Id</td>
+			<td>
+				@Html.ActionLink(item.Name, "EditRole", new { ID = item.Id })
+			</td>
+			<td class="text-center">@item.Commission %</td>
+			<td class="text-center">
+				@using (Html.BeginForm("DeleteRole", "Account"))
+				{
+					@Html.Hidden("Id", item.Id)
+					<i onclick="ADSrvConfirm('Czy napewno usunąć obiekt @item.Name    ?','Usuwanie', this.parentNode)" class="glyphicon glyphicon-trash pointer"></i>
+				}
+			</td>
+		</tr>
+	}
+}

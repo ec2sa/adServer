@@ -1,0 +1,19 @@
+﻿@model ADServerManagementWebApplication.Models.ErrorModel
+
+@{
+    ViewBag.Title = "Błąd na stronie !!!";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="danger text-center">
+    <h2>Wystąpił wyjątek na stronie - informacje zostały zalogowane do pliku logów.</h2>
+</div>
+
+<div class="text-danger">
+    <label class="input-validation-error"></label>
+    <h2>@Html.DisplayFor(m => Model.PrimaryMessage)</h2>
+</div>
+
+<br />
+
+@MvcHtmlString.Create(Html.Encode(Model.Log).Replace(Environment.NewLine, "<br />"))

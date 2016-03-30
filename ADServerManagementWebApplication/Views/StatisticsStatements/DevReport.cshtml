@@ -1,0 +1,52 @@
+﻿@model ADServerDAL.Other.ReportDev
+
+<h4>Raport dotyczący unikalnych adresów IP klientów, u których wyświetlono nośnik</h4>
+
+<div class="reportDetails reportLeft">
+	<p>Ostatnie 30 dni</p>
+	<table class="table table-striped table-condensed table-bordered">
+		<tr>
+			<th>Dzień</th>
+			<th>Liczba unikalnych adresów IP</th>
+		</tr>
+		@foreach (var it in Model.LastDays)
+		{
+			<tr>
+				<td>@it.Key.ToShortDateString()</td>
+				<td>@it.Value</td>
+			</tr>
+		}
+	</table>
+</div>
+<div class="reportDetails">
+	<p>Ostatnie 10 tygodni</p>
+	<table class="table table-striped table-condensed table-bordered" style="width: 300px;">
+		<tr>
+			<th>Tydzień</th>
+			<th>Liczba unikalnych adresów IP</th>
+		</tr>
+		@foreach (var it in Model.LastWeeks)
+		{
+			<tr>
+				<td>@it.Key</td>
+				<td>@it.Value</td>
+			</tr>
+		}
+	</table>
+</div>
+<div class="reportDetails reportRight">
+	<p>Ostatnie 12 miesięcy</p>
+	<table class="table table-striped table-condensed table-bordered">
+		<tr>
+			<th>Miesiąc</th>
+			<th>Liczba unikalnych adresów IP</th>
+		</tr>
+		@foreach (var it in Model.LastMonths)
+		{
+			<tr>
+				<td>@it.Key</td>
+				<td>@it.Value</td>
+			</tr>
+		}
+	</table>
+</div>

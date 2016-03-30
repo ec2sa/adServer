@@ -1,0 +1,3 @@
+﻿@using System.Globalization
+@model decimal
+@Html.TextBoxFor(m => m, string.Format(CultureInfo.GetCultureInfo("pl-PL"), "{0:0.0000}", Model), new { @class = "form-control" })

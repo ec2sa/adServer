@@ -1,0 +1,13 @@
+﻿@model ADServerManagementWebApplication.Models.AdminManageViewModel
+
+<div class="form-group">
+	@Html.LabelFor(model => model.PasswordR)
+	@Html.PasswordFor(model => model.PasswordR, new { @class = "form-control" })
+	@Html.ValidationMessageFor(model => model.PasswordR)
+</div>
+
+<div class="form-group">
+	@Html.LabelFor(model => model.ConfirmPasswordR)
+	@Html.PasswordFor(model => model.ConfirmPasswordR, new { @class = "form-control" })
+	@Html.ValidationMessageFor(model => model.ConfirmPasswordR)
+</div>

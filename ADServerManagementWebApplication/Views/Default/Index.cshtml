@@ -1,0 +1,295 @@
+﻿@{
+    ViewBag.Title = " - AdServer Management - ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Prefix = ViewBag.Prefix ?? "";
+}
+
+<script type="text/javascript">
+    $(function () {
+        $("#accordion").accordion({
+            collapsible: true,
+            heightStyle: "content",
+            active: 'none'
+        });
+    });
+</script>
+
+<p class="text-success">@ViewBag.StatusMessage</p>
+<div class="row panel">
+    <div class="panel panel-danger">
+        <div class="panel panel-heading">
+            <h3 id="Title" class="text-center">@ViewBag.Title</h3>
+        </div>
+        <div class="panel-body">
+            <div id="RecordInfo" class="text-info"></div>
+            <br />
+            <div id="OverTable" class="panel-footer"></div>
+
+            <div id="accordion">
+                <h3>Filtry</h3>
+                <div class="panel-group">
+                    <table id="Filters" class="filters-table"></table>
+                </div>
+            </div>
+
+            <table id="ListTable" class="table table-striped table-condensed table-bordered"></table>
+            <nav id="Footer" class="Pager"></nav>
+        </div>
+    </div>
+</div>
+
+@section JavaScript
+{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            LoadPage('@ViewBag.url');
+        });
+
+        function LoadStatistics() {
+            $('.informationContent').each(function () {
+                var e = $(this);
+                var edata = e.data('no');
+                var callAction = e.data('call');
+
+                $.post('@Url.Content("~/StatisticsStatements")/' + callAction + '/?id=' + edata, function (data) {
+                    e.find('.panel-body').html(data);
+                });
+            });
+        };
+
+        function ActionLink(url, sortExpression, ascending, page) {
+            if (page == null)
+                page = 1;
+            if (url.indexOf('@Url.Content("~")') == -1 || url.indexOf('@Url.Content("~")') != 0)
+                url = '@Url.Content("~")' + url;
+            window.location = url + "?page=" + page + "&sortExpression=" + sortExpression + "&ascending=" + ascending;
+        };
+
+        function InnerActionLink(url, sortExpression, ascending, page, prefix, innerId) {
+            if (page == null)
+                page = 1;
+            url = '@Url.Content("~")' + url;
+
+            var dataJ = { page: parseInt(page), sortExpression: sortExpression, ascending: ascending, id: innerId };
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: JSON.stringify(dataJ),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'html',
+                success: function (data) {
+                    $('div#accordion_' + innerId + '.panel-group div.panel div#collapse_' + innerId + '.panel-collapse div.panel-body').html(data);
+                    return;
+                },
+                error: function () {
+                    alert('Błąd segregacji!');
+                }
+            });
+        };
+        //--------------------
+
+		function ActionLink(url, sortExpression, ascending, page, prefix) {
+            if (page == null)
+            	page = 1;
+			if (url.indexOf('@Url.Content("~")') == -1 || url.indexOf('@Url.Content("~")') != 0)
+            	url = '@Url.Content("~")' + url;
+            var dataJ = { page: page, sortExpression: sortExpression, ascending: ascending };
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: JSON.stringify(dataJ),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'html',
+                success: function (data) {
+                    var parser = new DOMParser();
+                    var work = parser.parseFromString(data, "text/html");
+                    if (prefix === undefined) {
+                        prefix = "";
+                    }
+                    var findPrefix = work.getElementsByClassName('filters-table');
+                    if (findPrefix.length > 1)
+                        prefix = findPrefix[1].id.replace('Filters', '');
+                    else {
+                        prefix = findPrefix[0].id.replace('Filters', '');
+                    }
+                    BaseLoad(work, prefix);
+                    executeLoad();
+                    return;
+                },
+                error: function () {
+                    alert('Błąd segregacji!');
+
+                }
+            });
+        };
+
+		function LoadPage(url) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'html',
+                success: function (data) {
+                    var parser = new DOMParser();
+                    var work = parser.parseFromString(data, "text/html");
+
+                    var msg = document.getElementsByClassName('alert alert-danger text-center');
+                    if (msg != null && msg.length > 0 && msg[0].className.indexOf('toDelete') == -1) {
+                        msg[0].className += ' toDelete';
+                    } else if (msg != null && msg.length > 0 && msg[0].className.indexOf('toDelete') != -1)
+                        msg[0].remove();
+                    var findPrefix = work.getElementsByClassName('filters-table');
+                    if (findPrefix.length > 1)
+                        var prefix = findPrefix[1].id.replace('Filters', '');
+                    else {
+                        var prefix = findPrefix[0].id.replace('Filters', '');
+                    }
+                    BaseLoad(work, prefix);
+
+                    ReplacebyId(work, 'OverTable');
+                    var menuAdr = url.split('/');
+                    var menuUnactive = document.getElementsByClassName('active');
+                    $(menuUnactive[0]).removeClass('active');
+                    if (menuAdr.length > 2 && menuAdr[1] != "AdServer")
+                        var menuActive = document.getElementById(menuAdr[menuAdr.length - 1] + '-' + menuAdr[menuAdr.length - 2]);
+                    else {
+                        var menuActive = document.getElementById('Index-' + menuAdr[menuAdr.length - 1]);
+                        if (menuActive == null || menuActive === undefined) {
+                            menuActive = document.getElementById(menuAdr[menuAdr.length - 1] + '-' + menuAdr[menuAdr.length - 2]);
+                        }
+                    }
+                    $(menuActive).addClass('active');
+                    ReplacebyId(work, 'Title');
+                    executeLoad();
+                    return;
+                },
+                error: function () {
+                    alert('Błąd załadowanie strony');
+                }
+            });
+        };
+
+		function executeLoad() {
+            var datepicker = document.getElementsByClassName('datapicker');
+            $(datepicker).each(function (index, element) {
+                $(element).datepicker(
+				{
+				    dateFormat: 'yy-mm-dd',
+				    showAnim: 'drop'
+				});
+            });
+            $("[rel=tooltip]").tooltip({ html: true });
+
+            LoadStatistics();
+        };
+
+		function FiltersSort(ctr, action, list, prefix) {
+            var dataJ = new Object;
+            var filters = document.getElementsByClassName('filter');
+            $(filters).each(function (index, element) {
+                var prop = element.name.replace('Filters.', '');
+                var value = element.value;
+                dataJ[prop] = value;
+            });
+            if (action == null || action == "")
+                action = "Index";
+            if (list == null || list == "")
+                list = "List";
+            var baseUrl = '@Url.Content("~")' + ctr + '/';
+            $.ajax({
+                type: 'POST',
+                url: baseUrl + list,
+                data: JSON.stringify(dataJ),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'html',
+                success: function () {
+                    var urls = baseUrl + action;
+                    if (prefix === undefined) {
+                        prefix = "";
+                    }
+                    ActionLink(urls, 'Id', true, prefix);
+                },
+                error: function () {
+                    alert('Błąd filtracji!');
+                }
+            });
+        };
+
+		function BaseLoad(work, prefix) {
+            ReplaceByTag(work, 'head');
+            ReplacebyId(work, 'RecordInfo');
+            ReplacebyId(work, 'Filters', prefix);
+            ReplacebyId(work, 'ListTable', prefix);
+            ReplacebyId(work, 'Footer');
+            ReplacebyClass(work, 'UserAdPoints');
+            ReplacebyClass(work, 'UserAdPointsInner');
+        };
+
+		function ReplacebyClass(work, _class, prefix) {
+            if (prefix === undefined)
+                prefix = "";
+
+            var from = $(work).find('.' + _class+':first');
+            $('.' + _class).html(from.html());
+        }
+
+		function ReplaceByTag(work, tag) {
+            var from = work.getElementsByTagName(tag);
+            var to = document.getElementsByTagName(tag);
+            if (from.length > 0 && from[0].innerHTML != '' && from[0].innerHTML != '\n		\n	')
+                to[0].innerHTML += from[0].innerHTML;
+        }
+
+		function ReplacebyId(work, id, prefix) {
+            if (prefix === undefined)
+                prefix = "";
+            var from = work.getElementById(prefix + id);
+            var to = document.getElementById(id);
+            if (from != null && from.innerHTML != null) {
+                if (id == 'Title') {
+                    var menu = document.getElementById('mainMenu');
+                    var adr = '';
+                    var menuActive = menu.getElementsByClassName('active')[0];
+                    if (menuActive === undefined || menuActive == null) {
+                        from.innerHTML = 'Moje nośniki → Zestawienie statystyk nośników';
+                        return;
+                    }
+                    adr += menuActive.parentNode.parentNode.getElementsByTagName('a')[0].textContent;
+
+                    if (from.innerHTML != null && from.innerHTML != "")
+                        adr += ' → ' + menuActive.getElementsByTagName('a')[0].innerHTML + ' → ' + from.innerHTML;
+                    else
+                        adr += ' → ' + menuActive.getElementsByTagName('a')[0].innerHTML;
+                    from.innerHTML = adr;
+                }
+                to.innerHTML = from.innerHTML;
+            } else
+                to.innerHTML = "";
+        }
+
+		function ClearFilters(ctr, action, list, prefix) {
+            if (action == null || action == "")
+                action = "Index";
+            if (list == null || list == "")
+                list = "List";
+            var baseUrl = '@Url.Content("~")' + ctr + '/';
+            $.ajax({
+                type: 'POST',
+                url: baseUrl + list,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'html',
+                success: function () {
+                    var urls = baseUrl + action;
+                    if (prefix === undefined) {
+                        prefix = "";
+                    }
+                    ActionLink(urls, 'Id', true, prefix);
+                },
+                error: function () {
+                    alert('Błąd filtracji!');
+                }
+            });
+        }
+    </script>
+}

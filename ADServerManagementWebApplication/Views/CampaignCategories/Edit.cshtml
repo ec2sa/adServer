@@ -1,0 +1,111 @@
+﻿@model ADServerManagementWebApplication.Models.CampaignCategoryViewModel
+
+@{
+    string title = (Model.Category.Id == 0 ? ("Nowa kategoria") : ("Edycja kategorii : " + Model.Category.Name));
+    ViewBag.Title = title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderScripts
+{
+    <script type="text/javascript" src="~/Scripts/Common/Entities/Campaign.js"></script>
+    <script type="text/javascript" src="~/Scripts/Common/Entities/CampaignCategory.js"></script>
+    <script type="text/javascript" src="~/Scripts/Common/SelectCampaign.js"></script>
+    <script type="text/javascript" src="~/Scripts/CampaignCategories/Edit/CategoryViewModel.js"></script>
+    <script type="text/javascript">
+        var checkIfLoadedHandler;
+
+        function CheckIfLoaded() {
+
+            ///sprawdź czy wszystkie listy zostały już załadowane
+            if (AreListsLoaded()) {
+
+                ///zatrzymaj timer sprawdzający
+                clearInterval(checkIfLoadedHandler);
+
+                ///odblokuj funkcjonalność interfejsu
+                $('#btnSave').val("Zapisz");
+                $('#btnSave').removeAttr("disabled");
+                $('#btnAddCampaign').removeAttr("disabled");
+                $('#btnRemoveCampaign').removeAttr("disabled");
+            }
+        }
+
+        $(function () {
+
+            ///Zablokuj funkcjonalność interfejsu
+            $('#btnSave').attr("disabled", "disabled");
+            $('#btnSave').val("Czekaj ...");
+            $('#btnAddCampaign').attr("disabled", "disabled");
+            $('#btnRemoveCampaign').attr("disabled", "disabled");
+
+            ///włącz timer sprawdzający czy listy zostały załadowane
+            setInterval(CheckIfLoaded, 500);
+
+            ///konfiguruj kontrolki            
+            $("#tabs").tabs();
+
+            ///pobierz dane z interfejsu i przypisz do modelu
+            var ID = parseInt($('#Category_Id').val());
+            var Name = $('#Category_Name').val();
+            var Code = $('#Category_Code').val();            
+            campaignCategoryModel = new CampaignCategory(ID, Name, Code);
+
+            ///załaduj listę kampanii
+            LoadCampaigns('@Url.Action("Campaigns", "api/ApiCampaignCategories")', campaignCategoryModel.Id);
+        });
+    </script>
+}
+
+<div class="panel panel-danger">
+    <div class="panel-heading">
+        <h3>@title</h3>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        <div class="panel-body">
+            <div id="tabs">
+
+                <ul>
+                    <li><a href="#tabs-1">Dane ogólne</a></li>
+                    <li><a href="#tabs-2">Kampanie</a></li>
+                </ul>
+
+                <div id="tabs-1">
+                    @Html.HiddenFor(m => m.Category.Id)
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Category.Name)
+                        @Html.TextBoxFor(m => m.Category.Name,
+                             new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.Category.Name)
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Category.Code)
+                        @Html.TextBoxFor(m => m.Category.Code,
+                  new { @class = "form-control", style = "width:150px;" })
+                        @Html.ValidationMessageFor(m => m.Category.Code)
+                    </div>
+                </div>
+
+
+                <div id="tabs-2">
+                    @Html.Partial("Edit/_Campaigns")
+                </div>
+
+            </div>
+        </div>
+        <div class="panel-footer">
+			<input id="btnSave" class="btn btn-success" type="button" value="Zapisz" onclick="SaveCategory('@Url.Action("SaveCategory", "api/ApiCampaignCategories")','@Url.Action("Index","Default", new {ctr = "CampaignCategories"})')" />
+            @Html.ActionLink("Wróć", "Index","Default", new {ctr = "CampaignCategories"},
+         new
+         {
+             @class = "btn btn-danger"
+         })
+        </div>
+    }
+
+</div>
+

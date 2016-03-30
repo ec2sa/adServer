@@ -1,0 +1,98 @@
+﻿@model ADServerManagementWebApplication.Models.StatisticsListViewModel
+@using ADServerDAL.Models
+@using EC2
+
+@{
+    ViewBag.Title = "Statystyki";
+    Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+
+@section Table
+{
+    <tr>
+        @{
+            string innertype = null;
+            string url = null;
+	        string siteAction = null;
+            if (ViewBag.Action == "CmpStatement")
+            {
+                innertype = "Cmp";
+				url = "StatisticsStatements/CmpStatement";
+				siteAction = "CampaignStatement";
+            }
+            if (ViewBag.Action == "ObjStatement")
+            {
+				innertype = "Obj";
+				url = "StatisticsStatements/ObjStatement";
+				siteAction = "MultimediaObjectStatement";
+            }
+            if (ViewBag.Action == "DevStatement")
+            {
+				innertype = "Dev";
+				url = "StatisticsStatements/DevStatement";
+				siteAction = "DeviceStatement";
+            }
+        }
+
+        @Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID", innerType: innertype, innerId: (int?)ViewBag.Id)
+        <th class="text-right">
+            Data<br />
+            @Html.AdServerSegregate("", url, "RequestDate", @Model.SortAccending, "żądania", true, innerType: innertype, innerId: (int?)ViewBag.Id)
+            @Html.AdServerSegregate("", url, "ResponseDate", @Model.SortAccending, "odpowiedzi", true, innerType: innertype, innerId: (int?)ViewBag.Id)
+        </th>
+        <th class="text-center">
+            Obiekt<br />
+            @Html.AdServerSegregate("", url, "MultimediaObject.Name", @Model.SortAccending, "nazwa", true, innerType: innertype, innerId: (int?)ViewBag.Id),
+            @Html.AdServerSegregate("", url, "MultimediaObjectId", @Model.SortAccending, "Id", true, innerType: innertype, innerId: (int?)ViewBag.Id),
+            @Html.AdServerSegregate("", url, "MultimediaObject.TypeId", @Model.SortAccending, "typ", true, innerType: innertype, innerId: (int?)ViewBag.Id)
+        </th>
+        <th class="text-center">Kampanie</th>
+        <th>Nośnik</th>
+        <th class="text-center">Właściciel nośnika<br /></th>
+        <th class="text-right">Nadawca</th>
+        <th class="text-center">Informacje dodatkowe</th>
+    </tr>
+
+    @foreach (Statistic item in Model.Statistics)
+    {
+        <tr rel='tooltip' data-placement="left" data-original-title='
+            <img class="imgContent" width="@ADServerDAL.Helpers.ImageProcesorHelper.ThumbnailSize.ToString()" height="@ADServerDAL.Helpers.ImageProcesorHelper.ThumbnailSize.ToString()"
+                 src="@Url.Action("GetThumbnail", "MultimediaObjects", new {ID = item.MultimediaObjectId})" />'>
+            <td class="text-right">@item.Id</td>
+            <td class="text-right" style="white-space: nowrap;">@item.RequestDate<br />@item.ResponseDate</td>
+	        <td class="text-center ">
+		        @if (siteAction == "DeviceStatement")
+		        {
+			        @Html.ActionLink(item.MultimediaObject.Name, "Edit", "MultimediaObjects", new {id = item.MultimediaObjectId, returnUrl = @Url.Action("Index", "Default", new {act = siteAction, ctr = "StatisticsStatements"})}, null);
+		        }
+		        else
+		        {
+			        @Html.ActionLink(item.MultimediaObject.Name, "Edit", "MultimediaObjects", new {id = item.MultimediaObjectId, returnUrl = @Url.Action(siteAction, "StatisticsStatements")}, null)
+		        }
+		        <br />
+		        <span style="font-size: smaller; color: gray">@item.MultimediaObject.Type.Name</span>
+	        </td>
+            @if (@item.Campaign != null)
+            {
+                <td>@item.Campaign.Name</td>
+            }
+            else
+            {
+                <td>Nieznana kampania</td>
+            }
+            @if (item.Device != null)
+            {
+                <td>@item.Device.Name</td>
+            }
+            else
+            {
+                <td>Nieznanny nośnik</td>
+            }
+            <td class="text-right">@item.User.FirstName @item.User.LastName<br />@item.User.Email</td>
+            <td class="text-right"><br />@item.RequestIP</td>
+            <td class="text-right">
+                @item.Data1 @item.Data2 @item.Data3 @item.Data4<br />
+            </td>
+        </tr>
+    }
+}

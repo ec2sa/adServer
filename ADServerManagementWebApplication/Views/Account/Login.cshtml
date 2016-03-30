@@ -1,0 +1,25 @@
+﻿@model ADServerManagementWebApplication.Models.LoginViewModel
+
+@{
+	ViewBag.Title = User.Identity.IsAuthenticated ? "Informacje zabezpieczeń" :"Logowanie do aplikacji AdServer";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section HeaderScripts
+{}
+
+<div class="panel panel-danger">
+	<div class="panel panel-heading">
+		<h2>@ViewBag.Title.</h2>
+	</div>
+	<div class="panel-body" style="min-width: 200px;">
+		@if(!User.Identity.IsAuthenticated)
+		{
+			@Html.Partial("_Login", Model);
+		}
+		else
+		{
+			@Html.ValidationSummary();
+		}
+	</div>
+</div>
+

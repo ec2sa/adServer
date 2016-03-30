@@ -1,0 +1,100 @@
+﻿@model  ADServerDAL.Models.Device
+
+@{
+	ViewBag.Title = "Podgląd zastosowania nośnika dla identyfikatora nr : " + @Model.Id;
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.HTMLControl = string.Format(@"<a href=""{6}://{7}{0}?id={1}"" target=""_blank"">{2}	<img id=""imgPreview"" width=""{3}"" height=""{4}"" src=""{6}://{7}{5}?id={1}"" alt=""Ad"">{2}</a>", @Url.Content("~/Ad/URL"), @Model.Id, Environment.NewLine, Model.Type.Width, Model.Type.Height, @Url.Content("~/Ad"), Request.Url.Scheme, Request.Url.Host);
+	//ViewBag.HTMLControl = @"<a href=""" + @Url.Action("URL","Ad") +"?id=" + @Model.Id + @""" target=""_blank"">" + Environment.NewLine+"\t" + @"<img id=""imgPreview"" width=""" + @Model.Type.Width + @""" height=""" + @Model.Type.Height + @""" src=""http://demo.ec2.pl/AD?&Id=" + @Model.Id + @""" alt=""Ad"">" + System.Environment.NewLine + @"</a>";
+}
+
+@section HeaderScripts
+{
+	<script type="text/javascript">
+		$(function () {
+			$("#tabs").tabs();
+		});
+	</script>
+	<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+}
+
+<div class="panel panel-danger">
+	<div class="panel-heading">
+		<h3>@ViewBag.Title</h3>
+	</div>
+	@using (Html.BeginForm("Edit", "Device"))
+	{
+		@Html.AntiForgeryToken()
+		<div class="panel-body">
+			<div id="tabs">
+				<ul>
+					<li><a href="#tabs-1">Strona WWW</a></li>
+					<li><a href="#tabs-2">Aplikacja Windows WinForms</a></li>
+					<li><a href="#tabs-3">Aplikacja Windows XAML </a></li>
+				</ul>
+				<div id="tabs-1">
+					<p>Wyświetlenie reklamy odbywa się poprzez wklejenie poniższego kodu HTML</p>
+					<div>
+						<?prettify?><pre class="prettyprint">@ViewBag.HTMLControl</pre>
+					</div>
+					<p>Efektem jest obrazek taki jak poniżej:</p>
+					<div>
+						@Html.Raw(ViewBag.HTMLControl)
+					</div>
+				</div>
+				<div id="tabs-2">
+					<div>
+						<p>Aby wyświetlić reklamę w aplikacji WinForms należy ściągnąc kontrolkę <a href='@Url.Content("~/Content/Control.zip")'>z naszej strony</a> a następnie ustawić następujące parametry/właściwości kontrolki:</p>
+						<div>
+							<fieldset>
+								<legend>Wartości powinny być przypisane poprzez event startujący - funkcja/event dodany do handlera AdPrividerStarted</legend>
+								<ul>
+									<li>RequestFrequency - częstotliwość wyświetlania</li>
+									<li>Widht - Szerokość kontrolki</li>
+									<li>Height - wysokość kontrolki</li>
+									<li>ID - nośnika w tym przypadku: @Model.Id</li>
+								</ul>
+							</fieldset>
+						</div>
+						<div>
+							<fieldset>
+								<legend>Obsługa odpowiedzi serwera</legend>
+								W aplikacji można odczytywać błędy wykonania poprzez przypisanie funkcji/eventu do handlera ErrorsOccured
+							</fieldset>
+						</div>
+					</div>
+				</div>
+				<div id="tabs-3">
+					<div>
+						<p>Uruchomienie kontrolki w technologii XAML nie odbiega znacząco od postaci w WinForms. Również należy ściągnąc kontrolkę <a href='@Url.Content("~/Content/Control.zip")'>z naszej strony</a> a następnie ustawić następujące parametry/właściwości kontrolki:</p>
+						<div>
+							Należy dodać przestrzeń nazw w pliku xaml :
+							<p>xmlns:adControl="clr-namespace:DesktopUserControl;assembly=DesktopUserControl"</p>
+							<p>Następnie osadzić kontrolkę w WinFormsProvider</p>
+							<?prettify?><pre class="prettyprint">@(ViewBag.Provider = @"<windowsformshost name=""Host"" height=""100"" width=""100"">"+"\n\t"+@"<adcontrol:adprovidercontrol x:name=""AdControl"" />"+"\n"+"</windowsformshost>")</pre>
+						</div>
+						<div>
+							<fieldset>
+								<legend>Wartości powinny być przypisane poprzez event startujący - funkcja/event dodany do handlera AdPrividerStarted</legend>
+								<ul>
+									<li>RequestFrequency - częstotliwość wyświetlania</li>
+									<li>Widht - Szerokość kontrolki</li>
+									<li>Height - wysokość kontrolki</li>
+									<li>ID - nośnika w tym przypadku: @Model.Id</li>
+								</ul>
+							</fieldset>
+						</div>
+						<div>
+							<fieldset>
+								<legend>Obsługa odpowiedzi serwera</legend>
+								W aplikacji można odczytywać błędy wykonania poprzez przypisanie funkcji/eventu do handlera ErrorsOccured.
+							</fieldset>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel-footer">
+			@Html.ActionLink("Wróć", "Index", "Default", new { ctr = "Device" }, new { @class = "btn btn-danger" })
+		</div>
+	}
+</div>

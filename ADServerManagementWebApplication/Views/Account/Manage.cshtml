@@ -1,0 +1,91 @@
+﻿@using ADServerDAL.Models
+@using EC2
+@model ADServerManagementWebApplication.Models.UsersListViewModel
+@{
+	ViewBag.Title = "Dane użytkowników";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+
+@section Filters
+{
+	@using (Html.BeginForm())
+	{
+		<tr>
+			<td class="col-width-180">
+				<div class="single-filter-div single-filter-div100">
+					@Html.LabelFor(m => Model.Filters.FilterLogin)
+					@Html.TextBoxFor(m => Model.Filters.FilterLogin, new { @class = "form-control filter" })
+					@Html.ValidationMessageFor(m => Model.Filters.FilterLogin)
+				</div>
+			</td>
+			<td class="col-width-180">
+				<div class="single-filter-div single-filter-div100">
+					@Html.LabelFor(m => Model.Filters.FilterFirstName)
+					@Html.TextBoxFor(x => Model.Filters.FilterFirstName, new { @class = "form-control filter" })
+					@Html.ValidationMessageFor(m => Model.Filters.FilterFirstName)
+				</div>
+			</td>
+			<td class="col-width-180">
+				<div class="single-filter-div single-filter-div100">
+					@Html.LabelFor(m => Model.Filters.FilterLastName)
+					@Html.TextBoxFor(x => Model.Filters.FilterLastName, new { @class = "form-control filter" })
+					@Html.ValidationMessageFor(m => Model.Filters.FilterLastName)
+				</div>
+			</td>
+			<td class="col-width-180">
+				<div class="single-filter-div single-filter-div100">
+					@Html.LabelFor(m => Model.Filters.FilterBlocked)
+					@Html.DropDownListFor(m => m.Filters.FilterBlocked, Model.Filters.YesNo, "",
+						new { @class = "form-control filter" })
+				</div>
+			</td>
+			<td class="col-width-180">
+				<div class="single-filter-div single-filter-div100">
+					@Html.LabelFor(m => Model.Filters.FilterRolaId)
+					@Html.DropDownListFor(m => m.Filters.FilterRolaId, Model.Filters.FilterRole, "",
+						new { @class = "form-control filter" })
+				</div>
+			</td>
+			<td class="col-width-180" style="vertical-align: bottom">
+				<div class="single-filter-div single-filter-div100">
+					<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick=" FiltersSort('Account', 'Manage') " />
+					<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick=" ClearFilters('Account', 'Manage') " />
+				</div>
+			</td>
+			<td></td>
+		</tr>
+	}
+}
+	</table>
+@section OverTable
+{
+	@Html.ActionLink("Utwórz nowego użytkownika", "Edit", null, new { @class = "btn btn-success" })
+}
+@section Table
+{
+	<tr>
+		@{
+			var url = @Url.Action("Manage", "Account");
+		}
+		@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID")
+		@Html.AdServerSegregate("left", url, "Name", @Model.SortAccending, "Użytkownik")
+		@Html.AdServerSegregate("right", url, "FirstName", @Model.SortAccending, "Imie")
+		@Html.AdServerSegregate("right", url, "LastName", @Model.SortAccending, "Nazwisko")
+		@Html.AdServerSegregate("right", url, "AdPoints", @Model.SortAccending, "AdPoints")
+		@Html.AdServerSegregate("center", url, "IsBlocked", @Model.SortAccending, "Zablokowany")
+		@Html.AdServerSegregate("center", url, "Role.Id", @Model.SortAccending, "Uprawnienia")
+	</tr>
+
+	@foreach (User item in Model.Users)
+	{
+		<tr>
+			<td class="text-right">@item.Id</td>
+			<td>@Html.ActionLink(@item.Name, "Edit", new { item.Id })</td>
+			<td class="text-right">@item.FirstName</td>
+			<td class="text-right">@item.LastName</td>
+			<td class="text-right">@item.AdPoints</td>
+			<td class="text-center disabled">@Html.DisplayFor(it => item.IsBlocked)</td>
+			<td class="text-center">@item.Role.Name</td>
+		</tr>
+	}
+}

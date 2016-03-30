@@ -1,0 +1,36 @@
+﻿@if (TempData["Warn"] != null)
+{
+	foreach (var item in ((List<string>)(TempData["Warn"])))
+	{
+		<div class="alert alert-warning text-center">
+			<a class="close" data-dismiss="alert" href="#">x</a>
+			<ul>
+				@item
+			</ul>
+		</div>
+	}
+}
+@if (TempData["Info"] != null)
+{
+	foreach (var item in ((List<string>)(TempData["Info"])))
+	{
+		<div class="alert alert-info text-center">
+			<a class="close" data-dismiss="alert" href="#">x</a>
+			<ul>
+				@item
+			</ul>
+		</div>
+	}
+}
+@if (TempData["Error"] != null)
+{
+	foreach (var item in ((List<string>)(TempData["Error"])))
+	{
+		<div class="alert alert-danger text-center">
+			<a class="close" data-dismiss="alert" href="#">x</a>
+			<ul>
+				@item
+			</ul>
+		</div>
+	}
+}

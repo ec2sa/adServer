@@ -1,0 +1,24 @@
+﻿@model ADServerManagementWebApplication.Models.ListViewModel
+<!DOCTYPE html>
+<html>
+<head>
+	@RenderSection("HeadSection", false)
+
+    
+</head>
+	<body>
+        <div class="UserAdPoints" style="display: none;">@ViewBag.AdPoints</div>
+        <div class="UserAdPointsInner" style="display: none;">@ViewBag.AdPoints</div>
+		<h3 id="Title">@ViewBag.Title</h3>
+		<div id="RecordInfo" class="text-info">
+			(@Model.NumberOfResults wpisów znaleziono. Strona @Model.CurrentPage z @Model.TotalPages)
+		</div>
+        <div id="OverTable" class="panel-footer">@RenderSection("OverTable", false)</div>
+        <table id="Filters" class="filters-table">@RenderSection("Filters", false)</table>
+	    
+		<table id="ListTable" class="table table-striped table-condensed table-bordered">@RenderSection("Table", false)</table>
+		@RenderSection("Another", false)
+		@RenderSection("UnderTable", false)
+		<nav id="Footer" class="Pager">@Html.CreateNumericPager(Model.NumberOfResults, Model.ItemsPerPage, Model.CurrentPage, (string) ViewBag.Prefix, (int?) ViewBag.InnerId)</nav>
+	</body>
+</html>

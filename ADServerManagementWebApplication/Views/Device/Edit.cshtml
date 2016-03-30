@@ -1,0 +1,102 @@
+﻿@using System.Web.Services.Description
+@model  ADServerDAL.Models.Device
+
+@{
+	ViewBag.Title = (Model.Id == 0 ? ("Nowy nośnik") : ("Edycja nośnika : " + Model.Name));
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section HeaderScripts
+{
+	<script type="text/javascript" src="~/Scripts/Common/Entities/Campaign.js"></script>
+	<script type="text/javascript" src="~/Scripts/Common/Entities/CampaignCategory.js"></script>
+	<script type="text/javascript" src="~/Scripts/Common/Entities/DeviceViewModel.js"></script>
+<script type="text/javascript" src="~/Scripts/Common/SelectCampaign.js"></script>
+<script type="text/javascript" src="~/Scripts/Common/SelectCategories.js"></script>
+	<script type="text/javascript" src="~/Scripts/Device/Edit/Device.js"></script>
+	<script type="text/javascript">
+		var checkIfLoadedHandler;
+
+		function CheckIfLoaded() {
+
+			///sprawdź czy wszystkie listy zostały już załadowane
+			if (AreListsLoaded()) {
+
+				///zatrzymaj timer sprawdzający
+				clearInterval(checkIfLoadedHandler);
+
+				///odblokuj funkcjonalność interfejsu
+				$('#btnSave').val("Zapisz");
+				$('#btnSave').removeAttr("disabled");
+				$('#btnAddCampaign').removeAttr("disabled");
+				$('#btnRemoveCampaign').removeAttr("disabled");
+			}
+		}
+
+		$(function () {
+
+			///Zablokuj funkcjonalność interfejsu
+			$('#btnSave').attr("disabled", "disabled");
+			$('#btnSave').val("Czekaj ...");
+			$('#btnAddCampaign').attr("disabled", "disabled");
+			$('#btnRemoveCampaign').attr("disabled", "disabled");
+
+			///włącz timer sprawdzający czy listy zostały załadowane
+			setInterval(CheckIfLoaded, 500);
+
+			///konfiguruj kontrolki
+			$("#tabs").tabs();
+			///załaduj listę kampanii
+			LoadCampaigns('@Url.Action("Campaigns", "api/ApiDevice")', $('#Id').val());
+			LoadCategories('@Url.Action("Categories", "api/ApiDevice")', $('#Id').val());
+		});
+	</script>
+}
+
+
+<div class="panel panel-danger">
+	<div class="panel-heading">
+		<h3>@ViewBag.Title</h3>
+	</div>
+	@using (Html.BeginForm("Edit", "Device"))
+	{
+		@Html.AntiForgeryToken()
+		<div class="panel-body">
+			<div id="tabs">
+				<ul>
+					<li><a href="#tabs-1">Dane ogólne</a></li>
+					<li><a href="#tabs-2">Kategorie</a></li>
+					<li><a href="#tabs-3">Kampanie</a></li>
+				</ul>
+				<div id="tabs-1">
+					@Html.HiddenFor(m => m.Id)
+					<div class="form-group">
+						@Html.LabelFor(m => m.Name)
+						@Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+						@Html.ValidationMessageFor(m => m.Name)
+					</div>
+					<div class="form-group">
+						@Html.LabelFor(m => m.Description)
+						@Html.TextBoxFor(m => m.Description, new { @class = "form-control" })
+						@Html.ValidationMessageFor(m => m.Description)
+					</div>
+					<div class="form-group">
+						@Html.LabelFor(m => m.TypeId)
+						@Html.DropDownListFor(m => m.TypeId, (SelectList)ViewBag.Types,
+						  new { @class = "dropdown dropdown-header" })
+						@Html.ValidationMessageFor(m => m.TypeId)
+					</div>
+				</div>
+				<div id="tabs-2">
+					@Html.Partial("Edit/_Categories")
+				</div>
+				<div id="tabs-3">
+					@Html.Partial("Edit/_Campaigns")
+				</div>
+			</div>
+		</div>
+		<div class="panel-footer">
+			<input id="btnSave" class="btn btn-success" type="button" value="Zapisz" onclick="SaveDevice('@Url.Action("SaveDevice", "api/ApiDevice")','@Url.Action("Index", "Default", new { ctr = "Device" })')" />
+			<a href="@ViewBag.Return" class="btn btn-danger">Wróć</a>
+		</div>
+	}
+</div>

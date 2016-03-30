@@ -1,0 +1,41 @@
+﻿@model ADServerManagementWebApplication.Models.Menu
+@if (Request.IsAuthenticated)
+{
+	if (Model.Action != null && Model.Controller != null)
+	{
+		if (ViewContext.RouteData.Values["Controller"].ToString() == Model.Controller &&
+			((!Model.ActiveForAllAction && ViewContext.RouteData.Values["Action"].ToString() == Model.Action) || Model.ActiveForAllAction))
+		{
+			ViewBag.ClassActive = "active";
+		}
+		else
+		{
+			ViewBag.ClassActive = "";
+		}
+		if (Model.ListView)
+		{
+			<li id="@Model.Action-@Model.Controller" class="@ViewBag.ClassActive">
+				<a href="#" onclick="LoadPage('@Url.Action(Model.Action, Model.Controller)');">@Model.OptionName</a>
+			</li>
+		}
+		else
+		{
+			<li id="@Model.Action-@Model.Controller" class="@ViewBag.ClassActive">
+				<a href="@Url.Action(Model.Action, Model.Controller)" >@Model.OptionName</a>
+			</li>
+		}
+	}
+	if (@Model.Submenu != null)
+	{
+		<li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown">@Model.OptionName<b class="caret"></b></a>
+			<ul class="dropdown-menu">
+				@foreach (var s in @Model.Submenu)
+				{
+					@Html.Partial("MenuOption", s)
+				}
+			</ul>
+		</li>
+	}
+}
+

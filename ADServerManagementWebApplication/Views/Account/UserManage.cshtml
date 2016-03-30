@@ -1,0 +1,14 @@
+﻿@{
+	ViewBag.Title = "Dane użytkownika";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<p class="text-success">@ViewBag.StatusMessage</p>
+<div class="row panel">
+	<div class="panel panel-danger">
+		<div class="panel panel-heading">
+			<h3 align="center">@ViewBag.Title</h3>
+</div>
+		@Html.Partial("_ChangePassword")
+	</div>
+</div>
+

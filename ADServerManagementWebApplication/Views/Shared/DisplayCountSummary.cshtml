@@ -1,0 +1,50 @@
+﻿@model ADServerDAL.Entities.Presentation.StatisticsStatementItem
+<div class="statistics-statement-source">
+
+	@if (Model.Type == ADServerDAL.Entities.Presentation.StatisticsStatementType.MultimediaObject)
+	{
+		<img width="@ADServerDAL.Helpers.ImageProcesorHelper.ThumbnailSize.ToString()" height="@ADServerDAL.Helpers.ImageProcesorHelper.ThumbnailSize.ToString()"
+			 src="@Url.Action("GetThumbnail", "MultimediaObjects", new { ID = Model.Id })" />
+	}
+
+	@if (Model.TotalDisplayCount > 0)
+	{
+
+		<table class="statisticsStatementSourceTable">
+			<tr>
+				<th class="col-md-2" align="right" colspan="2">Ilość wyświetleń</th>
+			</tr>
+			<tr>
+				<td width="100">Całkowita</td>
+				<td>@Model.TotalDisplayCount</td>
+			</tr>
+			<tr>
+				<td>WWW</td>
+				<td>@Model.WWWDisplayCount</td>
+			</tr>
+			<tr>
+				<td>Desktop</td>
+				<td>@Model.DesktopDisplayCount</td>
+			</tr>
+			<tr>
+				<td>Przekierowano</td>
+				<td>@Model.ClickedCount</td>
+			</tr>
+			<tr>
+				<td>Zużyto punktów</td>
+				<td>@Model.AdPointsCount</td>
+			</tr>
+			@if(@Model.cAdPoints != null)
+			{
+			<tr>
+				<td>Pozostało punktów</td>
+				<td>@Model.cAdPoints</td>
+			</tr>
+			}
+		</table>
+	}
+	else
+	{
+		<span>Ilość wyświetleń:</span> @Model.TotalDisplayCount
+	}
+</div>

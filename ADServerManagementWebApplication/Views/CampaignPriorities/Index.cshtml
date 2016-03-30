@@ -1,0 +1,56 @@
+﻿@using ADServerDAL.Models
+@using EC2
+@model ADServerManagementWebApplication.Models.CampaignPrioritiesListViewModel
+
+@{
+	ViewBag.Title = "Lista priorytetów";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+@section Filters
+{
+	<tr>
+		@Html.AdServerFilter(m => m.Filters.FilterName, true, htmlObject: new { @class = "form-control filter"})
+		@Html.AdServerFilter(m => m.Filters.FilterCode, true, htmlObject: new { @class = "form-control filter" , pattern="^[0-9]$"})
+		<td class="col-width-180" style="vertical-align: bottom">
+			<div class="single-filter-div single-filter-div100">
+				<input class="btn btn-success" type="submit" value="Filtruj" onclick=" FiltersSort('CampaignPriorities') " />
+				<input class="btn btn-danger" type="submit" value="Wyczyść" onclick=" ClearFilters('CampaignPriorities') " />
+			</div>
+		</td>
+		<td></td>
+	</tr>
+}
+}
+@section OverTable
+{
+	@Html.ActionLink("Utwórz nowy priorytet", "Edit", null, new { @class = "btn btn-success" })
+}
+@section Table
+{
+	<tr>
+		@{
+			var url = @Url.Action("Index", "CampaignPriorities");
+		}
+		@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID",thWidth: 1)
+		@Html.AdServerSegregate("center", url, "Name", @Model.SortAccending, "Nazwa",thWidth: 15)
+		@Html.AdServerSegregate("center", url, "Code", @Model.SortAccending, "Kod", thWidth: 1)
+		<th width="1%" class="text-center">Akcje</th>
+	</tr>
+
+	@foreach (Priority item in Model.Priorities)
+	{
+		<tr>
+			<td class="text-right">@item.Id</td>
+			<td class="text-center">@Html.ActionLink(item.Name, "Edit", new { ID = item.Id })</td>
+
+			<td class="text-center">@item.Code</td>
+			<td class="actions">
+				@using (Html.BeginForm("Delete", "CampaignPriorities"))
+				{
+					@Html.Hidden("Id", item.Id)
+					<i onclick="ADSrvConfirm('Czy napewno usunąć kampanię @item.Name    ?','Usuwanie', this.parentNode)" class="glyphicon glyphicon-trash pointer"></i>
+				}
+			</td>
+		</tr>
+	}
+}

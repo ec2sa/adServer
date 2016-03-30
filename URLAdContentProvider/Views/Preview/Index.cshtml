@@ -1,0 +1,87 @@
+﻿@model URLAdContentProvider.Models.AdServiceModel
+
+@{
+	ViewBag.Title = "Przykład pobrania obrazka metodą GET";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<table style="width: 100%">
+	<tbody>
+		<tr>
+			<td style="background-color: lightgreen; padding: 20px;">
+				Aby wyświetlić kolejny obrazek, odśwież stronę lub kliknij przycisk "Pokaż obiekt"<br />
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<div>
+					<div class="table" style="background-color: pink">
+						@using (Html.BeginForm("Index", "Default", FormMethod.Post))
+						{
+							<div class="col-sm-4">
+
+								<fieldset>
+									<legend>Parametry</legend>
+									<ul class="list-group">
+										<li class="list-group-item">
+											Wymiary:
+											@Html.TextBoxFor(x => x.Request.Width, new { @class = "form-control", style = "width:80px;" }) x
+											@Html.TextBoxFor(x => x.Request.Height, new { @class = "form-control", style = "width:80px;" })
+										</li>
+										<li class="list-group-item">
+											Kategorie (kody; po przecinku):
+											@Html.TextBoxFor(x => x.CategoryCodesAsString, new { @class = "form-control" })
+										</li>
+										<li class="list-group-item">
+											Źródło:
+											@Html.TextBoxFor(x => x.Request.Referrer, new { @class = "form-control" })
+										</li>
+										<li class="list-group-item">
+											Firma:
+											@Html.TextBoxFor(x => x.Request.CompanyName, new { @class = "form-control" })
+										</li>
+										<li class="list-group-item">
+											Session id:
+											@Html.TextBoxFor(x => x.Request.SessionId, new { @class = "form-control" })
+										</li>
+										<li class="list-group-item">
+
+											<input type="submit" value="Pokaż obiekt" />
+										</li>
+									</ul>
+								</fieldset>
+
+							</div>
+							<div class="col-sm-6">
+								<fieldset>
+									<legend>Podgląd z parametrów</legend>
+									<a href="@Model.ServiceUrl/AD/URL?id=1&ViewId=0">
+										<img id="imgPreview" alt="Ad" width="@Model.Request.Width" height="@Model.Request.Height" src="@Model.ServiceUrl/AD?&Id=1&ViewId=0">
+									</a>
+									
+								</fieldset>
+
+
+								<fieldset>
+									<legend>Podgląd wedle zadanych parametrów</legend>
+									<a href="@Url.Action("URL", "Ad")?Id=1&ViewId=1">
+										<img id="imgPreview" height="100" width="100" src="@Url.Action("Index", "Ad")?Id=1&ViewId=1" alt="Ad">
+									</a>
+									@*<a href="http://localhost:57168//AD/URL?ViewId=2">
+										<img id="imgPreview" height="100" width="100" src="http://localhost:57168/AD?categoryCodes=ogl&width=100&height=100&companyName=QL&Id=1" alt="Ad">
+									</a>*@
+								</fieldset>
+							</div>
+						}
+
+					</div>
+
+				</div>
+			</td>
+
+		</tr>
+
+	</tbody>
+</table>

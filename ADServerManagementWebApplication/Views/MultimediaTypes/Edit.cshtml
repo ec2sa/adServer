@@ -1,0 +1,75 @@
+﻿@model ADServerManagementWebApplication.Models.MultimediaTypeViewMode
+
+@{
+    string title = (Model.MultimediaType.Id == 0 ? ("Nowy typ obiektu") : ("Edycja typu obiektu : " + Model.MultimediaType.Name));
+    ViewBag.Title = title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section HeaderScripts
+{
+    <script type="text/javascript">
+        $(function () {
+
+            ///Ustawienie masek
+
+            $('#MultimediaType_Width').bind('keyup blur', function () {
+                var myValue = $(this).val();
+                $(this).val(myValue.replace(/[^0-9]/g, ''));
+            });
+
+            $('#MultimediaType_Height').bind('keyup blur', function () {
+                var myValue = $(this).val();
+                $(this).val(myValue.replace(/[^0-9]/g, ''));
+            });
+        });
+    </script>
+}
+
+<div class="panel panel-danger">
+    <div class="panel-heading">
+        <h3>@title</h3>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        <div class="panel-body">
+            @Html.HiddenFor(m => m.MultimediaType.Id)
+
+            <div class="form-group">
+                @Html.LabelFor(m => m.MultimediaType.Name)
+                @Html.TextBoxFor(m => m.MultimediaType.Name,
+                             new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.MultimediaType.Name)
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(m => m.MultimediaType.Width)
+                @Html.TextBoxFor(m => m.MultimediaType.Width,
+                          new { @class = "form-control", style = "width:80px;" })
+                @Html.ValidationMessageFor(m => m.MultimediaType.Width)
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(m => m.MultimediaType.Height)
+                @Html.TextBoxFor(m => m.MultimediaType.Height,
+                       new { @class = "form-control", style = "width:80px;" })
+                @Html.ValidationMessageFor(m => m.MultimediaType.Height)
+
+            </div>
+
+        </div>
+        <div class="panel-footer">
+            <input class="btn btn-success" type="submit" value="Zapisz" onclick="ShowPleaseWaitPanel('Zapisywanie typu obiektu', true);" />
+            @Html.ActionLink("Wróć", "Index", "Default", new{ctr = "MultimediaTypes"},
+         new
+         {
+             @class = "btn btn-danger"
+         })
+        </div>
+    }
+
+</div>
+
+

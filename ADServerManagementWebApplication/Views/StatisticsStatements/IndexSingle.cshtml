@@ -1,0 +1,137 @@
+﻿@using ADServerDAL.Entities.Presentation
+@using EC2
+@using Type = ADServerDAL.Models.Type
+@model ADServerManagementWebApplication.Models.StatisticsStatementListViewModel
+
+@{
+	ViewBag.Title = "";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+@section Filters
+{
+	@using (Html.BeginForm())
+	{
+
+		<tr>
+			@Html.AdServerFilter(m => m.Filters.FilterName, true, htmlObject: new { @class = "form-control filter" })
+
+			<td class="col-width-180" style="vertical-align: bottom">
+				<div class="single-filter-div single-filter-div100">
+					<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick="FiltersSort('StatisticsStatements', 'DeviceStatement');" />
+					<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick="ClearFilters('StatisticsStatements', 'DeviceStatement')" />
+				</div>
+			</td>
+			<td></td>
+		</tr>
+
+	}
+}
+<script type="text/javascript">
+	$(document).ready(function () {
+		$('.informationContent').each(function () {
+			var e = $(this);
+			var edata = e.data('no');
+			var callAction = e.data('call');
+
+			$.post('@Url.Content("~/StatisticsStatements")/' + callAction + '/?id=' + edata, function (data) {
+				e.find('.panel-body').html(data);
+			});
+		});
+	});
+
+	function ActionLink(url, sortExpression, ascending, page) {
+
+		if (page == null)
+			page = 1;
+		if (url.indexOf('@Url.Content("~")') == -1 || url.indexOf('@Url.Content("~")') != 0)
+			url = '@Url.Content("~")' + url;
+		window.location = url + "?page=" + page + "&sortExpression=" + sortExpression + "&ascending=" + ascending;
+	};
+
+	function InnerActionLink(url, sortExpression, ascending, page, prefix, innerId) {
+		if (page == null)
+			page = 1;
+		url = '@Url.Content("~")' + url;
+		var dataJ = { page: parseInt(page), sortExpression: sortExpression, ascending: ascending, id: innerId };
+		$.ajax({
+			type: 'POST',
+			url: url,
+			data: JSON.stringify(dataJ),
+			contentType: 'application/json; charset=utf-8',
+			dataType: 'html',
+			success: function (data) {
+				$('div#accordion_' + innerId + '.panel-group div.panel div#collapse_' + innerId + '.panel-collapse div.panel-body').html(data);
+				return;
+			},
+			error: function () {
+				alert('Błąd segregacji!');
+
+			}
+		});
+	};
+</script>
+
+@section Table
+{
+	<tr>
+		@{
+			var url = @Url.Action("DeviceStatement", "StatisticsStatements");
+		}
+		@Html.AdServerSegregate("left", url, "Name", @Model.SortAccending, "Nośniki", thWidth: 15)
+		<th></th>
+	</tr>
+
+	@foreach (StatisticsStatementItem item in Model.Query)
+	{
+		<tr>
+			<td class="statistics-stamement-row" style="width: 300px !important;">
+				<div class="statistics-statement-row-header">
+					@Html.ActionLink(@item.Name ?? "OldDevice", "Edit", "Device", new { id = item.Id, returnUrl = Url.Content("~") + "?ctr=StatisticsStatements&act=DeviceStatement" }, null)
+				</div>
+				<div>
+					@Html.Partial("DisplayCountSummary", @item)
+				</div>
+			</td>
+			<td>
+
+				<div id="informationContent_@item.Id" class="informationContent" data-no="@item.Id" data-call="DevStatement">
+					<div class="panel-group" id="accordion_@item.Id">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion_@item.Id" href="#collapse_@item.Id">
+										<i class='glyphicon glyphicon-resize-vertical'></i>Statystyki
+									</a>
+								</h4>
+							</div>
+							<div id="collapse_@item.Id" class="panel-collapse collapse">
+								<div class="panel-body">
+									Ładowanie danych ...
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<br />
+				<div id="ReportContent_@item.Id" class="informationContent" data-no="@item.Id" data-call="DevReport">
+					<div class="panel-group" id="ReportAccordion_@item.Id">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#ReportAccordion_@item.Id" href="#ReportCollapse_@item.Id">
+										<i class='glyphicon glyphicon-resize-vertical'></i>Raport - unikalne adresy IP
+									</a>
+								</h4>
+							</div>
+							<div id="ReportCollapse_@item.Id" class="panel-collapse collapse">
+								<div class="panel-body">
+									Ładowanie danych ...
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</td>
+		</tr>
+	}
+}

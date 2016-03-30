@@ -1,0 +1,79 @@
+﻿@using EC2
+@using Type = ADServerDAL.Models.Type
+@model ADServerManagementWebApplication.Models.MultimediaTypesListViewModel
+
+@{
+	ViewBag.Title = "Lista typów obiektów multimedialnych";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+<head>
+	<script type="text/javascript">
+		$(function () {
+
+			///Ustawienie masek
+
+			$('#Filters_FilterWidth').bind('keyup blur', function () {
+				var myValue = $(this).val();
+				$(this).val(myValue.replace(/[^0-9]/g, ''));
+			});
+
+			$('#Filters_FilterHeight').bind('keyup blur', function () {
+				var myValue = $(this).val();
+				$(this).val(myValue.replace(/[^0-9]/g, ''));
+			});
+		});
+	</script>
+</head>
+
+@section Filters
+{
+	@using (Html.BeginForm())
+	{
+		<tr>
+			@Html.AdServerFilter(m => m.Filters.FilterName, true, htmlObject: new { @class = "form-control filter" })
+			@Html.AdServerFilter(m => m.Filters.FilterWidth, true, htmlObject: new { @class = "form-control filter" })
+			@Html.AdServerFilter(m => m.Filters.FilterHeight, true, htmlObject: new { @class = "form-control filter" })
+
+			<td class="col-width-180" style="vertical-align: bottom">
+				<div class="single-filter-div single-filter-div100">
+					<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick="FiltersSort('MultimediaTypes')" />
+					<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick="ClearFilters('MultimediaTypes')" />
+				</div>
+			</td>
+			<td></td>
+		</tr>
+	}}
+@section OverTable
+{
+	@Html.ActionLink("Utwórz nowy typ obiektu", "Edit", null, new { @class = "btn btn-success" })
+}
+@section Table
+{
+	<tr>
+	@{
+		var url = @Url.Action("Index", "MultimediaTypes");
+	}
+	@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID", thWidth: 1)
+		@Html.AdServerSegregate("left", url, "Name", @Model.SortAccending, "Nazwa", thWidth: 15)
+		@Html.AdServerSegregate("center", url, "Width", @Model.SortAccending, "Szerokość", thWidth: 2)
+		@Html.AdServerSegregate("center", url, "Height", @Model.SortAccending, "Wysokość", thWidth: 2)
+		<th width="1%" class="text-center">Akcje</th>
+	</tr>
+
+	@foreach (Type item in Model.MultimediaTypes)
+	{
+		<tr>
+			<td class="text-right">@item.Id</td>
+			<td>@Html.ActionLink(item.Name, "Edit", new { item.Id })</td>
+			<td class="text-center">@item.Width</td>
+			<td class="text-center">@item.Height</td>
+			<td class="actions">
+				@using (Html.BeginForm("Delete", "MultimediaTypes"))
+				{
+					@Html.Hidden("Id", item.Id)
+					<i onclick="ADSrvConfirm('Czy napewno usunąć kampanię @item.Name    ?','Usuwanie', this.parentNode)" class="glyphicon glyphicon-trash pointer"></i>
+				}
+			</td>
+		</tr>
+	}
+}

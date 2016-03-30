@@ -1,0 +1,19 @@
+﻿@model System.Collections.Generic.Dictionary<string, int>
+<div class="statistic-statement-category">
+    @if (Model != null && Model.Count > 0)
+    {
+        <table class="statisticsStatementCategoryTable">
+            <tr>
+                <th>Kategoria</th>
+                <th>Wyświetleń</th>
+            </tr>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.Key</td>
+                    <td style="text-align:right">@c.Value</td>
+                </tr>
+            }
+        </table>
+    }
+</div>

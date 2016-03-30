@@ -1,0 +1,84 @@
+﻿@using System.Collections.Specialized
+@using ADServerDAL.Models
+@using EC2
+@model ADServerManagementWebApplication.Models.MultimediaObjectsListViewModel
+
+@{
+	ViewBag.Title = "Lista obiektów multimedialnych";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+@section Filters
+{
+	@using (Html.BeginForm("List", "MultimediaObjects"))
+	{
+		<tr>
+			@Html.AdServerFilter(m => m.Filters.FilterName, true, htmlObject: new { @class = "form-control filter" })
+			@Html.AdServerFilter(m => m.Filters.FilterType, true, htmlObject: new { @class = "form-control filter" })
+			@Html.AdServerFilter(m => m.Filters.FilterFileName, true, htmlObject: new { @class = "form-control filter" })
+			@Html.AdServerFilter(m => m.Filters.FilterMime, true, htmlObject: new { @class = "form-control filter" })
+
+			@if (User.IsInRole("Admin"))
+			{
+				@Html.AdServerFilter(m => m.Filters.FilterLogin, true, htmlObject: new { @class = "form-control filter" })
+			}
+			<td class="col-width-180" style="vertical-align: bottom">
+				<div class="single-filter-div single-filter-div100">
+					<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick="FiltersSort('MultimediaObjects'); " />
+					<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick="ClearFilters('MultimediaObjects');" />
+				</div>
+			</td>
+			<td></td>
+		</tr>
+	}
+}
+@section OverTable
+{
+	@Html.ActionLink("Utwórz nowy obiekt", "Edit", null, new { @class = "btn btn-success" })
+}
+@section Table
+{
+	<tr>
+		@{
+			var url = @Url.Action("Index", "MultimediaObjects");
+		}
+		@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID", thWidth: 1)
+		@Html.AdServerSegregate("left", url, "Name", @Model.SortAccending, "Nazwa", thWidth: 10)
+		@Html.AdServerSegregate("center", url, "Type.Name", @Model.SortAccending, "Typ", thWidth: 5)
+		@Html.AdServerSegregate("center", url, "FileName", @Model.SortAccending, "Nazwa pliku", thWidth: 3)
+		@Html.AdServerSegregate("center", url, "MimeType", @Model.SortAccending, "MIME", thWidth: 1)
+		<th class="text-center" width="1%">Obrazek</th>
+		@if (User.IsInRole("Admin"))
+		{
+			@Html.AdServerSegregate("center", url, "User.Name", @Model.SortAccending, "Użytkownik", thWidth: 3)
+		}
+		<th class="text-center" width="2%">Akcje</th>
+	</tr>
+
+	@foreach (MultimediaObject item in Model.MultimediaObjects)
+	{
+		<tr>
+			<td class="text-right">@item.Id</td>
+			<td>
+				@Html.ActionLink(item.Name, "Edit", new { ID = item.Id })
+			</td>
+			<td class="text-center">@item.Type.Name</td>
+			<td class="text-center">@item.FileName</td>
+			<td class="text-center">@item.MimeType</td>
+			<td class=" text-center">
+				<img width="@ADServerDAL.Helpers.ImageProcesorHelper.ThumbnailSize.ToString()" height="@ADServerDAL.Helpers.ImageProcesorHelper.ThumbnailSize.ToString()"
+					 src="@Url.Action("GetThumbnail", "MultimediaObjects", new { item.Id })" />
+			</td>
+			@if (User.IsInRole("Admin"))
+			{
+				<td class="text-center">@item.User.Name</td>
+			}
+			<td class="actions">
+				@using (Html.BeginForm("Delete", "MultimediaObjects"))
+				{
+					@Html.Hidden("Id", item.Id)
+					<i onclick="ADSrvConfirm('Czy napewno usunąć kampanię @item.Name    ?','Usuwanie', this.parentNode)" class="glyphicon glyphicon-trash pointer"></i>
+				}
+			</td>
+		</tr>
+	}
+}

@@ -1,0 +1,59 @@
+﻿@using ADServerDAL.Models
+@using EC2
+@model ADServerManagementWebApplication.Models.CampaignCategoriesListViewModel
+
+@{
+	ViewBag.Title = "Lista kategorii";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+@section Filters
+{
+	@using (Html.BeginForm())
+	{
+		<tr>
+			@Html.AdServerFilter(m => m.Filters.FilterName, true, htmlObject: new { @class = "form-control filter" })
+			@Html.AdServerFilter(m => m.Filters.FilterCode, true, htmlObject: new { @class = "form-control filter" })
+
+			<td class="col-width-180" style="vertical-align: bottom">
+				<div class="single-filter-div single-filter-div100">
+					<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick="FiltersSort('CampaignCategories')" />
+					<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick="ClearFilters('CampaignCategories')" />
+				</div>
+			</td>
+			<td></td>
+		</tr>
+	}
+}
+@section OverTable
+{
+	@Html.ActionLink("Utwórz nową kategorię", "Edit", null, new { @class = "btn btn-success" })
+}
+@section Table
+{
+	<tr>
+		@{
+			var url = @Url.Action("Index", "CampaignCategories");
+		}	
+	@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID", thWidth: 1)
+	@Html.AdServerSegregate("center", url, "Name", @Model.SortAccending, "Nazwa", thWidth: 15)
+	@Html.AdServerSegregate("center", url, "Code", @Model.SortAccending, "Kod", thWidth: 1)
+	<th width="1%" class="text-center">Akcje</th>
+	</tr>
+
+	@foreach (Category item in Model.Categories)
+	{
+		<tr>
+			<td class="text-right">@item.Id</td>
+			<td>@Html.ActionLink(item.Name, "Edit", new { item.Id })</td>
+
+			<td class="text-center">@item.Code</td>
+			<td class="actions">
+				@using (Html.BeginForm("Delete", "CampaignCategories"))
+				{
+					@Html.Hidden("Id", item.Id)
+					<i onclick="ADSrvConfirm('Czy napewno usunąć kampanię @item.Name    ?','Usuwanie', this.parentNode)" class="glyphicon glyphicon-trash pointer"></i>
+				}
+			</td>
+		</tr>
+	}
+}

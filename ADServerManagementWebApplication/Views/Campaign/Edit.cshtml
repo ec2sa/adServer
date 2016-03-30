@@ -1,0 +1,216 @@
+﻿@using System.Globalization
+@model ADServerManagementWebApplication.Models.CampaignViewModel
+
+@{
+	string title = (Model.Campaign.Id == 0 ? ("Nowa kampania") : ("Edycja kampanii : " + Model.Campaign.Name));
+	ViewBag.Title = title;
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderScripts
+{
+	<script type="text/javascript" src="~/Scripts/Common/Entities/Campaign.js"></script>
+	<script type="text/javascript" src="~/Scripts/Common/SelectCategories.js"></script>
+	<script type="text/javascript" src="~/Scripts/Common/SelectObjects.js"></script>
+	<script type="text/javascript" src="~/Scripts/Common/SelectDevices.js"></script>
+	<script type="text/javascript" src="~/Scripts/Common/Entities/CampaignCategory.js"></script>
+	<script type="text/javascript" src="~/Scripts/Campaign/Edit/CampaignViewModel.js"></script>
+
+
+	<script type="text/javascript">
+
+		var checkIfLoadedHandler;
+
+		function CheckIfLoaded() {
+
+			///sprawdź czy wszystkie listy zostały już załadowane
+			if (AreListsLoaded()) {
+
+				///zatrzymaj timer sprawdzający
+				clearInterval(checkIfLoadedHandler);
+
+				///odblokuj funkcjonalność interfejsu
+				$('#btnSave').val("Zapisz");
+				$('#btnSave').removeAttr("disabled");
+				$('#btnAddCategory').removeAttr("disabled");
+				$('#btnRemoveCategory').removeAttr("disabled");
+				$('#btnAddObject').removeAttr("disabled");
+				$('#btnRemoveObject').removeAttr("disabled");
+			}
+		}
+
+		$(function () {
+
+			///Zablokuj funkcjonalność interfejsu
+			$('#btnSave').attr("disabled", "disabled");
+			$('#btnSave').val("Czekaj ...");
+			$('#btnAddCategory').attr("disabled", "disabled");
+			$('#btnRemoveCategory').attr("disabled", "disabled");
+			$('#btnAddObject').attr("disabled", "disabled");
+			$('#btnRemoveObject').attr("disabled", "disabled");
+
+			$('#Campaign_StartDate').change(function () {
+				ClientSiteModelValidationForInput(this);
+			}).focusout(function () {
+				ClientSiteModelValidationForInput(this);
+			});
+
+			$('#Campaign_EndDate').change(function () {
+				ClientSiteModelValidationForInput(this);
+			});
+
+			///włącz timer sprawdzający czy listy zostały załadowane
+			setInterval(CheckIfLoaded, 500);
+
+			///konfiguruj kontrolki
+			$("#tabs").tabs();
+
+			$("#Campaign_StartDate").datepicker(
+                {
+                	dateFormat: 'yy-mm-dd',
+                	showAnim: 'drop',
+                	heightStyle: "content"
+                });
+
+			$("#Campaign_EndDate").datepicker(
+                {
+                	dateFormat: 'yy-mm-dd',
+                	showAnim: 'drop',
+                	heightStyle: "content"
+                });
+
+			///pobierz dane z interfejsu i przypisz do modelu
+			var id = parseInt($('#Campaign_Id').val());
+			name = $('#Campaign_Name').val();
+			description = $('#Campaign_Description').val();
+			startDate = $('#Campaign_StartDate').val();
+			endDate = $('#Campaign_EndDate').val();
+			active = $('#Campaign_IsActive').is(':checked');
+			priorityId = parseInt($('#Campaign_PriorityId').val());
+			campaignModel = new Campaign(id, name, description, startDate, endDate, priorityId, active);
+
+			///załaduj listę kategorii
+			LoadCategories('@Url.Action("Categories", "api/ApiCampaign")', id);
+
+			///załaduj listę kampanii
+			LoadObjects('@Url.Action("Objects", "api/ApiCampaign")', id);
+			LoadDevices('@Url.Action("Devices", "api/ApiDevice")', id);
+		});
+
+	</script>
+}
+
+<div class="panel panel-danger">
+	<div class="panel-heading">
+		<h3>@title</h3>
+	</div>
+
+	@using (Html.BeginForm("Edit", "Campaign"))
+	{
+		<div class="panel-body">
+			<div id="tabs">
+
+				<ul>
+					<li><a href="#tabs-1">Dane ogólne</a></li>
+					<li><a href="#tabs-2">Kategorie</a></li>
+					<li><a href="#tabs-3">Obiekty multimedialne</a></li>
+					<li><a href="#tabs-4">Nośniki</a></li>
+				</ul>
+
+				<div id="tabs-1">
+
+					@Html.HiddenFor(m => m.Campaign.Id)
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.Name)
+						@Html.TextBoxFor(m => m.Campaign.Name,
+							new { @class = "form-control" })
+						@Html.ValidationMessageFor(m => m.Campaign.Name)
+					</div>
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.Description)
+						@Html.TextAreaFor(m => m.Campaign.Description,
+							new { @class = "form-control", rows = 5 })
+						@Html.ValidationMessageFor(m => m.Campaign.Description)
+					</div>
+
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.IsActive)
+						@Html.CheckBoxFor(m => m.Campaign.IsActive,
+							new { @class = "checkbox" })
+
+					</div>
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.StartDate)
+						@Html.TextBoxFor(m => m.Campaign.StartDate, "{0:yyyy-MM-dd}",
+							new { @class = "form-control", style = "width:170px;" })
+						@Html.ValidationMessageFor(m => m.Campaign.StartDate, "Nieprawidłowa data")
+					</div>
+
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.EndDate)
+						@Html.TextBoxFor(m => m.Campaign.EndDate, "{0:yyyy-MM-dd}",
+							new { @class = "form-control", style = "width:170px;" })
+						@Html.ValidationMessageFor(m => m.Campaign.EndDate, "Nieprawidłowa data")
+					</div>
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.PriorityId)
+						@Html.DropDownListFor(m => m.Campaign.PriorityId, Model.Priorities,
+							new { @class = "dropdown" })
+						@Html.ValidationMessageFor(m => m.Campaign.PriorityId)
+					</div>
+					@if (User.IsInRole("Admin"))
+					{
+						<div class="form-group">
+							@Html.LabelFor(m => m.Campaign.UserId)
+							@Html.DropDownListFor(m => m.Campaign.UserId, Model.Users,
+								new { @class = "dropdown" })
+							@Html.ValidationMessageFor(m => m.Campaign.UserId)
+						</div>
+					}
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.AdPoints)
+						@Html.EditorFor(m => m.Campaign.AdPoints)
+						@Html.ValidationMessageFor(m => m.Campaign.AdPoints)
+					</div>
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.ClickValue)
+						@Html.EditorFor(m => m.Campaign.ClickValue)
+						@Html.ValidationMessageFor(m => m.Campaign.ClickValue)
+					</div>
+					<div class="form-group">
+						@Html.LabelFor(m => m.Campaign.ViewValue)
+						@Html.EditorFor(m => m.Campaign.ViewValue)
+						@Html.ValidationMessageFor(m => m.Campaign.ViewValue)
+					</div>
+				</div>
+
+				<div id="tabs-2">
+					@Html.Partial("Edit/_Categories")
+				</div>
+
+				<div id="tabs-3">
+					@Html.Partial("Edit/_Objects")
+				</div>
+
+				<div id="tabs-4">
+					@Html.Partial("Edit/_BrowseDevices")
+				</div>
+			</div>
+		</div>
+
+		<div class="panel-footer">
+			@{
+		ViewBag.SuccessURLAddress = !string.IsNullOrEmpty(Model.ReturnURL) ? Model.ReturnURL : Url.Action("Index", "Default");
+			}
+			<input id="btnSave" class="btn btn-success" type="button" value="Zapisz" onclick="SaveCampaign('@Url.Action("SaveCampaign", "api/ApiCampaign")    ','@ViewBag.SuccessURLAddress')" />
+			@Html.Hidden("returnUrl", @Model.ReturnURL)
+			<a href="@Model.ReturnURL" class="btn btn-danger">Wróć</a>
+		</div>
+	}
+</div>

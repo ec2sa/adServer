@@ -1,0 +1,61 @@
+﻿@model ADServerManagementWebApplication.Models.CampaignPriorityViewModel
+
+@{
+    string title = (Model.Priority.Id == 0 ? ("Nowy priorytet") : ("Edycja priorytetu : "  + Model.Priority.Name));
+    ViewBag.Title = title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section HeaderScripts
+{
+    <script type="text/javascript">
+        $(function () {
+
+            ///Ustawienie masek
+
+            $('#Priority_Code').bind('keyup blur', function () {
+                var myValue = $(this).val();
+                $(this).val(myValue.replace(/[^0-9]/g, ''));
+            });
+        });
+    </script>
+}
+
+<div class="panel panel-danger">
+    <div class="panel-heading">
+        <h3>@title</h3>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        <div class="panel-body">
+            @Html.HiddenFor(m => Model.Priority.Id)
+
+            <div class="form-group">
+                @Html.LabelFor(m => Model.Priority.Code)
+                @Html.TextBoxFor(m => Model.Priority.Code,
+                          new { @class = "form-control", style = "width:80px;" })
+                @Html.ValidationMessageFor(m => Model.Priority.Code)
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(m => Model.Priority.Name)
+                @Html.TextBoxFor(m => Model.Priority.Name,
+                             new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => Model.Priority.Name)
+
+            </div>
+
+        </div>
+        <div class="panel-footer">
+            <input class="btn btn-success" type="submit" onclick="ShowPleaseWaitPanel('Zapisywanie priorytetu', true);" value="Zapisz" />
+            @Html.ActionLink("Wróć", "Index","Default", new{ctr = "CampaignPriorities"},
+         new
+         {
+             @class = "btn btn-danger"
+         })
+        </div>
+    }
+
+</div>
+
+

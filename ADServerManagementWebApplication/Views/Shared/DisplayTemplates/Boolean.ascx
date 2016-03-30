@@ -1,0 +1,2 @@
+﻿<%@ Control Language="C#" Inherits="System.Web.Mvc.ViewUserControl<dynamic>" %>
+<%= (bool) ViewData.Model ? Html.Raw("<i class='glyphicon glyphicon-ok'></i>") : Html.Raw("<i class='glyphicon glyphicon-remove'></i>") %>

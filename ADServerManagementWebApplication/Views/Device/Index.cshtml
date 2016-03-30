@@ -1,0 +1,64 @@
+﻿@using ADServerDAL.Models
+@using EC2
+@model  ADServerManagementWebApplication.Models.DeviceListViewModel
+
+@{
+	ViewBag.Title = "Lista nośników";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+@section Filters
+{
+	@using (Html.BeginForm())
+	{
+		<tr>
+			<td class="col-width-180">
+				<div class="single-filter-div single-filter-div100">
+					@Html.LabelFor(m => Model.Filters.FilterName)
+					@Html.TextBoxFor(m => Model.Filters.FilterName, new { @class = "form-control filter" })
+					@Html.ValidationMessageFor(m => Model.Filters.FilterName)
+				</div>
+			</td>
+			<td class="col-width-180" style="vertical-align: bottom">
+				<div class="single-filter-div single-filter-div100">
+					<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick="FiltersSort('Device')" />
+					<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick="ClearFilters('Device');" />
+				</div>
+			</td>
+			<td></td>
+		</tr>
+	}
+}
+@section OverTable
+{
+	@Html.ActionLink("Dodaj nośnik", "Edit", null, new { @class = "btn btn-success" })
+}
+@section Table
+{
+	<tr>
+		@{
+			var url = @Url.Action("Index", "Device");
+		}
+		@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID", thWidth: 2)
+		@Html.AdServerSegregate("left", url, "Name", @Model.SortAccending, "Nazwa", thWidth: 10)
+		@Html.AdServerSegregate("left", url, "Description", @Model.SortAccending, "Opis", thWidth: 32)
+		<th class="text-center" width="3%">Akcje</th>
+	</tr>
+	@foreach (Device item in Model.Devices)
+	{
+		<tr>
+			<td class="text-right">@item.Id</td>
+			<td>@Html.ActionLink(item.Name, "Edit", new { item.Id })</td>
+			<td class="text-left">@item.Description</td>
+			<td class="actions">
+				@using (Html.BeginForm("Delete", "Device"))
+				{
+					@Html.Hidden("Id", item.Id)
+					<i onclick="ADSrvConfirm('Czy napewno usunąć kampanię @item.Name    ?','Usuwanie', this.parentNode)" class="glyphicon glyphicon-trash pointer"></i>
+                    <a href='@Url.Action("Preview", "Device", new { id = @item.Id })'><i class="glyphicon glyphicon-cog"></i></a>
+				}
+				
+			</td>
+
+		</tr>
+	}
+}

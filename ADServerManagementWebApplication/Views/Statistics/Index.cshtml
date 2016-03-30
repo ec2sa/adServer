@@ -1,0 +1,123 @@
+﻿@model ADServerManagementWebApplication.Models.StatisticsListViewModel
+@using ADServerDAL.Models
+@using EC2
+
+@{
+	ViewBag.Title = "";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+
+@section Another
+{
+	@{ ViewBag.FiltersId = @ViewBag.Prefix + "Filters"; }
+	<table id="@ViewBag.FiltersId" class="filters-table">
+		@using (Html.BeginForm())
+		{
+			<tr>
+				<td>
+					<div class="single-filter-div div.single-filter-div200">
+						@Html.AdServerFilter(m => m.Filters.FilterDateFrom, false, "{0:yyyy-MM-dd}", new {@class = "form-control datapicker filter"}, "Niepoprawna data")
+					</div>
+				</td>
+				<td>
+					<div class="single-filter-div div.single-filter-div200">
+						@Html.AdServerFilter(m => m.Filters.FilterDateTo, false, "{0:yyyy-MM-dd}", new {@class = "form-control datapicker filter"}, "Niepoprawna data")
+					</div>
+				</td>
+				<td>
+					<div class="single-filter-div div.single-filter-div200">
+						@Html.AdServerFilter(m => m.Filters.FilterMultimediaObjectId, false, htmlObject: new {@class = "form-control filter"})
+					</div>
+				</td>
+				<td></td>
+				<td rowspan="4" style="vertical-align: bottom">
+					<div>
+						@Html.Hidden("returnUrl", @Url.Action("Index", "Default", new {ctr = "Statistic", act = "Index"}))
+						<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick=" FiltersSort('Statistics', 'Index', null, '@ViewBag.Prefix'); " /><br /><br />
+						<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick=" Clearfilters('statistics', 'Index', null, '@ViewBag.Prefix'); " />
+					</div>
+				</td>
+			</tr>
+			<tr>
+
+				<td>
+					<div class="single-filter-div div.single-filter-div200">
+						@Html.AdServerFilter(m => m.Filters.FilterMultimediaObjectName, false, htmlObject: new {@class = "form-control filter"})
+					</div>
+				</td>
+				<td>
+					<div class="single-filter-div div.single-filter-div200">
+						@Html.AdServerFilter(m => m.Filters.FilterCampaignName, false, htmlObject: new {@class = "form-control filter"})
+					</div>
+				</td>
+			</tr>
+		}
+	</table>
+	@{ ViewBag.TableId = @ViewBag.Prefix + "ListTable"; }
+	<table id="@ViewBag.TableId" class="table table-striped table-condensed table-bordered">
+		<tr>
+			@{
+				var url = @Url.Action("Index", "Statistics");
+			}
+			@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID")
+			<th class="text-right">
+				Data<br />
+				@Html.AdServerSegregate("", url, "RequestDate", @Model.SortAccending, "żądania", true)
+				@Html.AdServerSegregate("", url, "ResponseDate", @Model.SortAccending, "odpowiedzi", true)
+			</th>
+			<th class="text-center">
+				Obiekt<br />
+				@Html.AdServerSegregate("", url, "MultimediaObject.Name", @Model.SortAccending, "nazwa", true),
+				@Html.AdServerSegregate("", url, "MultimediaObjectId", @Model.SortAccending, "Id", true),
+				@Html.AdServerSegregate("", url, "MultimediaObject.TypeId", @Model.SortAccending, "typ", true)
+			</th>
+			<th class="text-center">Kampanie</th>
+			<th>Nośnik</th>
+			<th class="text-center">Właściciel nośnika<br /></th>
+			<th class="text-right">Nadawca</th>
+			<th class="text-center">Informacje dodatkowe</th>
+		</tr>
+		@{int i = 0;}
+		@foreach (Statistic item in Model.Statistics)
+		{
+			<tr class="@((i++)%2 == 0 ? "highlited_tr" : "nothighlited_tr")" rel='tooltip' data-placement="left" data-original-title='
+			<img class="imgContent" width="@ADServerDAL.Helpers.ImageProcesorHelper.ThumbnailSize.ToString()" height="@ADServerDAL.Helpers.ImageProcesorHelper.ThumbnailSize.ToString()"
+				 src="@Url.Action("GetThumbnail", "MultimediaObjects", new {ID = item.MultimediaObjectId})" />'>
+				<td style="width: 35px;" class="text-right">@item.Id</td>
+				<td style="width: 140px; white-space: nowrap;" class="text-right">@item.RequestDate<br />@item.ResponseDate</td>
+				<td class="text-center ">
+					<a href ="@Url.Action("Edit", "MultimediaObjects", new { id = item.MultimediaObjectId, returnUrl = @Url.Action("Index", "Default", new { ctr = "Statistics", act = "Index" }) })">@item.MultimediaObject.Name</a>
+					<br />
+					<span style="font-size: smaller; color: gray">@item.MultimediaObject.Type.Name</span><br />
+					<span>Id obiektu: @item.MultimediaObject.Id</span>
+				</td>
+				@if (@item.Campaign != null)
+				{
+					<td>@Html.DisplayFor(it => item.Campaign.Name, new {PreventLineBrake = true})</td>
+				}
+				else
+				{
+					<td>Nieznana kampania</td>
+				}
+				@if (item.Device != null)
+				{
+					<td>@Html.DisplayFor(it => @item.Device.Name, new {PreventLineBrake = true})</td>
+				}
+				else
+				{
+					<td>Nieznanny nośnik</td>
+				}
+				<td class="text-right">@item.User.FirstName @item.User.LastName<br />@item.User.Email</td>
+				<td class="text-right"><br />@item.RequestIP</td>
+				<td class="text-right">
+					@item.Data1 @item.Data2 @item.Data3 @item.Data4<br />
+				</td>
+			</tr>
+			<tr class="expandable" style="display: none;">
+				<td colspan="8" id="informationContent_@item.Id">
+					Ładowanie zdalnej zawartości ...
+				</td>
+			</tr>
+		}
+	</table>
+}

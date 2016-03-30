@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<menu>
+	<option name="Moje kampanie" Role="Admin;User">
+		<option name="Kampanie" controller="Campaign" action="Index" activeForAllAction="true" Role="Admin;User" ListView="true"></option>
+		<option name="Obiekty" controller="MultimediaObjects" action="Index" activeForAllAction="true" Role="Admin;User" ListView="true"></option>
+		<option name="Zestawienia obiektów" controller="StatisticsStatements"  action="MultimediaObjectStatement" onClick="ShowPleaseWaitPanel('Trwa generowanie zestawień. Może to zająć dłuższą chwilę. Proszę czekać.', false, false)" Role="Admin;User" ListView="false"></option>
+		<option name="Zestawienia kampanii" controller="StatisticsStatements" action="CampaignStatement" onClick="ShowPleaseWaitPanel('Trwa generowanie zestawień. Może to zająć dłuższą chwilę. Proszę czekać.', false, false)" Role="Admin;User" ListView="false"></option>
+	</option>
+	<option name="Moje nośniki" Role="Admin;User">
+		<option name="Nośniki" controller="Device" action="Index" activeForAllAction="true" Role="Admin;User" ListView="true"></option>
+		<option name="Zestawienia nośników" controller="StatisticsStatements"  action="DeviceStatement" onClick="ShowPleaseWaitPanel('Trwa generowanie zestawień. Może to zająć dłuższą chwilę. Proszę czekać.', false, false)" Role="Admin;User" ListView="true"></option>
+	</option>
+	<option name="Ustawienia" Role="Admin">
+		<option name="Kategorie" controller="CampaignCategories" action="Index" activeForAllAction="true" Role="Admin" ListView="true"></option>
+		<option name="Priorytety" controller="CampaignPriorities" action="Index" activeForAllAction="true" Role="Admin" ListView="true"></option>
+		<option name="Typy obiektów" controller="MultimediaTypes" action="Index" activeForAllAction="true" Role="Admin" ListView="true"></option>
+	</option>
+	<option name="Statystyki" Role="Admin">
+		<option name="Przeglądanie statystyk" controller="Statistics" action="Index" activeForAllAction="true" onClick="ShowPleaseWaitPanel('Trwa generowanie statystyk. Może to zająć dłuższą chwilę. Proszę czekać.', false, false)" Role="Admin" ListView="true"></option>
+	</option>
+	<option name="Administracja" Role="Admin">
+		<option name="Zarządzanie użytkownikami" controller="Account" action="Manage" activeForAllAction="false" Role="Admin" ListView="true"></option>
+		<option name="Zarządzanie rolami" controller="Account" action="Role" activeForAllAction="false" Role="Admin" ListView="true"></option>
+		<option name="Zmień dane własne" controller="Account" action="UserManage" activeForAllAction="false" Role="Admin" ListView="false"></option>
+	</option>
+	<option name="Dane użytkownika" controller="Account" action="UserManage" activeForAllAction="true" Role="User" ListView="false"></option>	
+</menu>

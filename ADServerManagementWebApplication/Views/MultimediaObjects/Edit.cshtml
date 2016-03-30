@@ -1,0 +1,344 @@
+﻿@model ADServerManagementWebApplication.Models.MultimediaObjectViewModel
+
+@{
+	string title = (Model.MultimediaObject.Id == 0 ? ("Nowy obiekt") : ("Edycja obiektu multimedialnego : " + Model.MultimediaObject.Name));
+	ViewBag.Title = title;
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderCss
+{
+	<link href="~/Content/Progressbar.css" rel="stylesheet" />
+}
+
+@section HeaderScripts
+{
+	<script type="text/javascript" src="~/Scripts/Common/Entities/Campaign.js"></script>
+	<script type="text/javascript" src="~/Scripts/Common/Entities/MultimediaObject.js"></script>
+	<script type="text/javascript" src="~/Scripts/Common/SelectCampaign.js"></script>
+	<script type="text/javascript" src="~/Scripts/MultimediaObjects/Edit/MultimediaObjectViewModel.js"></script>
+
+	<script type="text/javascript">
+		var checkIfLoadedHandler;
+		var isTypeInformationLoaded = false;
+
+		function CheckIfLoaded() {
+
+			///sprawdź czy wszystkie listy zostały już załadowane
+			if (AreListsLoaded() && isTypeInformationLoaded) {
+
+				///zatrzymaj timer sprawdzający
+				clearInterval(checkIfLoadedHandler);
+
+				///odblokuj funkcjonalność interfejsu
+				$('#btnSave').val("Zapisz");
+				$('#btnSave').removeAttr("disabled");
+				$('#btnAddCampaign').removeAttr("disabled");
+				$('#btnRemoveCampaign').removeAttr("disabled");
+			}
+		}
+
+		$(function () {
+
+			///Zablokuj funkcjonalność interfejsu
+			$('#btnSave').attr("disabled", "disabled");
+			$('#btnSave').val("Czekaj ...");
+			$('#btnAddCampaign').attr("disabled", "disabled");
+			$('#btnRemoveCampaign').attr("disabled", "disabled");
+
+			///włącz timer sprawdzający czy listy zostały załadowane
+			setInterval(CheckIfLoaded, 500);
+
+			///konfiguruj kontrolki
+			$("#tabs").tabs();
+
+			///pobierz dane z interfejsu i przypisz do modelu
+			var Id = parseInt($('#MultimediaObject_Id').val());
+			var Name = $('#MultimediaObject_Name').val();
+			var FileName = $('#MultimediaObject_FileName').val();
+			var MimeType = $('#MultimediaObject_MimeType').val();
+			var TypeId = parseInt($('#MultimediaObject.TypeId').val());
+
+			///Dostosuj rozmiar obrazka do aktualnego typu obiektu
+			ChangePreviewImageSize();
+
+			$("#MultimediaObject_TypeId").change(function () {
+				$("#MultimediaObjectTypeId").val($("#MultimediaObject_TypeId").val());
+				ChangePreviewImageSize();
+			});
+
+			objectModel = new MultimediaObject(Id, Name, TypeId, MimeType, FileName);
+			///załaduj listę kampanii
+			LoadCampaigns('@Url.Action("Campaigns", "api/ApiMultimediaObjects")', objectModel.Id);
+
+			var request = JSON.stringify({
+				request: {
+					typeID: parseInt($("#MultimediaObject_TypeId").val()),
+					guid: $("#Guid").val()
+				}
+			});
+
+			///namiary na api controller, który ma obsłużyć upload pliku
+			var url = '@Url.Action("Upload", "api/Upload")';
+
+			///plik, który ma być uploadowany na serwer
+			var fileToUpload = null;
+
+			///submit formularza z popupa do uploadu pliku (= upload pliku na serwer)
+			$('#btnUploadAll').click(function () {
+				if ($("#MultimediaObjectTypeId").val() == null || $("#MultimediaObjectTypeId").val() == '' || $("#MultimediaObjectTypeId").val() == undefined) {
+					$("#MultimediaObjectTypeId").val($("#MultimediaObject_TypeId").val());
+				}
+
+				if (fileToUpload != null) {
+					fileToUpload.submit();
+				}
+			});
+
+			///upload pliku
+			$('#fileupload').fileupload({
+				url: url,
+				dataType: "json",
+				limitConcurrentUploads: 1,
+				progressInterval: 100,
+				add: function (e, d) {
+					fileToUpload = d;
+					$('#filelistholder').removeClass('hide');
+					$('#filelistholder').html("");
+					d.context = $('<div />').text(d.files[0].name).appendTo('#filelistholder');
+					$('</div><div class="progress"><div class="bar" style="width:0%"></div></div>').appendTo(d.context);
+				},
+				done: function (e, d) {
+					if (d.result != null && d.result != undefined) {
+						if (d.result.errors != null && d.result.errors != undefined && d.result.errors != "") {
+							alert(d.result.errors);
+						} else {
+							d.context.text(d.files[0].name + '... Załadowany');
+							$('</div><div class="progress"><div class="bar" style="width:100%"></div></div>').appendTo(d.context);
+							$('#ImagePreview').attr("src", "data:" + d.result.mimeType + ";base64," + d.result.contents);
+							$('#MultimediaObject_MimeType').val(d.result.mimeType);
+							$('#MultimediaObject_FileName').val(d.result.name);
+							if (d.result.width > 0 && d.result.height > 0) {
+								$('#ImagePreview').width(d.result.width).height(d.result.height);
+							}
+							HideFileUploadPopup();
+						}
+					} else {
+						alert("Wystąpił błąd. Upload pliku nie powiódł się.");
+					}
+				},
+				progress: function (e, d) {
+					var progress = parseInt(d.loaded / d.total * 100, 10);
+					d.context.find('.bar').css('width', progress + '%');
+				},
+				error: function (error) {
+					ADSrvError(error);
+				}
+			});
+		});
+
+		///Zmień rozmiar obrazka zgodnie, aby wymiary były zgodne z wymiarami wybranego typu
+		function ChangePreviewImageSize() {
+			var typeId = parseInt($("#MultimediaObject_TypeId").val());
+
+			var typeRequest = {
+
+				TypeId: typeId
+			};
+
+			$.ajax({
+				type: 'POST',
+				url: '@Url.Action("TypeInformation", "api/ApiMultimediaObjects")',
+				data: JSON.stringify(typeRequest),
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				success: function (result) {
+					var width = result.TypeItem.Width;
+					var height = result.TypeItem.Height;
+					if (width > 0 && height > 0) {
+						$('#ImagePreview').width(width).height(height);
+					}
+
+					isTypeInformationLoaded = true;
+				},
+				error: function (error) {
+					ADSrvError(error);
+				}
+			});
+		}
+
+		///popup do uploadowania pliku
+		var fileUploadPanel = null;
+
+		///Pokaż popup do uploadowania pliku
+		function ShowFileUploadPopup() {
+			fileUploadPanel = $("#uploadFilePopup").dialog({
+				resizable: false,
+				draggable: false,
+				height: 350,
+				width: 600,
+				modal: true,
+				open: function (event, ui) {
+					$(this).parent().children().children('.ui-dialog-titlebar-close').hide();
+					$(this).parent().children('.ui-dialog-titlebar').hide();
+					UploadControlsEnableDisable(true);
+				},
+				buttons: {
+				}
+			});
+		}
+
+		///Ukryj popup do uploadowania pliku
+		function HideFileUploadPopup() {
+			if (fileUploadPanel != null && fileUploadPanel != undefined) {
+				fileUploadPanel.dialog("close");
+			}
+		}
+
+		///Aktywowanie / dezaktywowanie kontrolek upload-i
+		function UploadControlsEnableDisable(enable) {
+			if (enable) {
+				$('#btnUploadAll').removeAttr("disabled");
+				$('#fileupload').removeAttr("disabled");
+			}
+			else {
+				$('#btnUploadAll').attr("disabled", "disabled");
+				$('#fileupload').attr("disabled", "disabled");
+			}
+		}
+
+	</script>
+}
+
+<div class="panel panel-danger">
+	<div class="panel-heading">
+		<h3>@title</h3>
+	</div>
+
+	<div id="percents"></div>
+	@using (Html.BeginForm(
+			"Edit",
+			"MultimediaObjects",
+			FormMethod.Post,
+			new
+			{
+				enctype = "multipart/form-data"
+			}))
+	{
+		<div class="panel-body">
+			<div id="tabs">
+
+				<ul>
+					<li><a href="#tabs-1">Dane ogólne</a></li>
+					<li><a href="#tabs-2">Kampanie</a></li>
+				</ul>
+
+				<div id="tabs-1">
+					@Html.HiddenFor(m => m.MultimediaObject.Id)
+					@Html.HiddenFor(m => m.Guid)
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.MultimediaObject.Name)
+						@Html.TextBoxFor(m => m.MultimediaObject.Name,
+								 new { @class = "form-control" })
+						@Html.ValidationMessageFor(m => m.MultimediaObject.Name)
+
+					</div>
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.MultimediaObject.TypeId)
+						@Html.DropDownListFor(m => m.MultimediaObject.TypeId, Model.MultimediaTypes,
+						  new { @class = "dropdown dropdown-header" })
+						@Html.ValidationMessageFor(m => m.MultimediaObject.TypeId)
+					</div>
+
+					<div class="form-group">
+
+						@if (Model.MultimediaObject == null || Model.MultimediaObject.Contents == null)
+						{
+							<img id="ImagePreview" alt="brak" />
+						}
+						else
+						{
+							@Html.HiddenFor(m => m.MultimediaObject.MimeType)
+							<img id="ImagePreview" width="@Model.MultimediaObject.Type.Width" height="@Model.MultimediaObject.Type.Height"
+								 src="data:@Model.MultimediaObject.MimeType;base64,@System.Convert.ToBase64String(Model.MultimediaObject.Contents)" />
+						}
+						<div>
+							<input class="btn btn-warning" type="button" title="Wgraj plik" onclick="ShowFileUploadPopup();" value="Wgraj plik">
+						</div>
+
+					</div>
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.MultimediaObject.FileName)<br />
+						@Html.TextBoxFor(m => m.MultimediaObject.FileName,
+					  new { @class = "form-control", @readonly = "readonly", style = "width:280px;" })
+						@Html.ValidationMessageFor(m => m.MultimediaObject.FileName)
+					</div>
+
+					<div class="form-group">
+						@Html.LabelFor(m => m.MultimediaObject.MimeType)<br />
+						@Html.TextBoxFor(m => m.MultimediaObject.MimeType,
+							new { @class = "form-control", @readonly = "readonly", style = "width:140px;" })
+						@Html.ValidationMessageFor(m => m.MultimediaObject.MimeType)
+
+					</div>
+					<div class="form-group">
+						@Html.LabelFor(m => m.MultimediaObject.Url)<br />
+						@Html.TextBoxFor(m => m.MultimediaObject.Url,
+							new { @class = "form-control" })
+						@Html.ValidationMessageFor(m => m.MultimediaObject.Url)
+
+					</div>
+					@if (User.IsInRole("Admin"))
+					{
+						<div class="form-group">
+							@Html.LabelFor(m => m.MultimediaObject.UserId)
+							@Html.DropDownListFor(m => m.MultimediaObject.UserId, Model.Users,
+								new { @class = "dropdown" })
+							@Html.ValidationMessageFor(m => m.MultimediaObject.UserId)
+						</div>
+					}
+				</div>
+
+
+				<div id="tabs-2">
+					@Html.Partial("Edit/_Campaigns")
+				</div>
+
+			</div>
+		</div>
+
+		<div class="panel-footer">
+			@{
+				ViewBag.SuccessURLAddress = !string.IsNullOrEmpty(Model.ReturnURL) ? Model.ReturnURL : Url.Action("Index", "MultimediaObjects");
+			} 
+			<input id="btnSave" class="btn btn-success" type="button" value="Zapisz" onclick="SaveObject('@Url.Action("SaveObject", "api/ApiMultimediaObjects")    ','@ViewBag.SuccessURLAddress    ')" />
+			@Html.Hidden("returnUrl", @Model.ReturnURL)
+			<a href="@Model.ReturnURL" class="btn btn-danger">Wróć</a>
+		</div>
+	}
+</div>
+
+<div id="uploadFilePopup" style="display: none;">
+	<form action="@Url.Action("Upload", "api/Upload")" enctype="multipart/form-data">
+		<div style="text-align: right;">
+			<span class="btn btn-link" onclick="HideFileUploadPopup()">Zamknij</span>
+		</div>
+		<div class="row fileupload-buttonbar" style="margin: 0px 5px">
+			<div class="span7">
+				<div class="well">
+					<i class="icon-plus"></i><span>Dodaj plik...</span>
+					<input class="btn btn-default btn-file" type="file" id="fileupload" name="fileupload" accept="image/*" aria-multiselectable="false" multiple="multiple">
+					@Html.Hidden("MultimediaObjectTypeId")
+					<button id="btnUploadAll" class="btn btn-success pull-right" onclick="UploadControlsEnableDisable(false)" type="button">Upload</button>
+					<div class="clearfix">
+					</div>
+					<div id="filelistholder">
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>

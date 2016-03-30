@@ -1,0 +1,122 @@
+﻿@model ADServerManagementWebApplication.Models.AdminManageViewModel
+@{
+	ViewBag.Title = Model.ID == 0 ? "Rejestracja użytkownika" : "Edytowanie użytkownika : " + Model.UserName;
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="panel panel-danger">
+	<div class="panel panel-heading">
+		<h3>@ViewBag.Title</h3>
+	</div>
+
+	@using (Html.BeginForm())
+	{
+		@Html.AntiForgeryToken()
+		<div class="panel-body">
+			<hr />
+			@Html.ValidationSummary()
+			<div class="col-md-6">
+				<div class="form-group">
+					@Html.LabelFor(model => model.UserName)
+					@Html.TextBoxFor(model => model.UserName, new { @class = "form-control" })
+					@Html.ValidationMessageFor(model => model.UserName)
+				</div>
+				<div>
+					<div class="form-group col-md-10">
+						@Html.LabelFor(m => m.RoleID)
+						@Html.DropDownListFor(m => m.RoleID, Model.Role,
+							new { @class = "dropdown dropdown-header" })
+						@Html.ValidationMessageFor(m => m.RoleID)
+					</div>
+					<div class="form-group col-md-2">
+						@Html.LabelFor(m => m.IsBlocked)
+						@Html.CheckBoxFor(m => m.IsBlocked,
+							new { @class = "checkbox" })
+					</div>
+				</div>
+				@if (Model.ID == 0)
+				{
+					@Html.Partial("_Edit", Model)
+				}
+				else
+				{
+					<div class="form-group">
+						@Html.LabelFor(model => model.Password)
+						@Html.PasswordFor(model => model.Password, new { @class = "form-control" })
+						@Html.ValidationMessageFor(model => model.Password)
+
+					</div>
+					<div class="form-group">
+						@Html.LabelFor(model => model.ConfirmPassword)
+						@Html.PasswordFor(model => model.ConfirmPassword, new { @class = "form-control" })
+						@Html.ValidationMessageFor(model => model.ConfirmPassword)
+					</div>
+				}
+				<div class="form-group">
+					@Html.LabelFor(model => model.FirstName)
+					@Html.TextBoxFor(model => model.FirstName, new { @class = "form-control" })
+					@Html.ValidationMessageFor(model => model.FirstName)
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.LastName)
+					@Html.TextBoxFor(model => model.LastName, new { @class = "form-control" })
+					@Html.ValidationMessageFor(model => model.LastName)
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.Email)
+					@Html.TextBoxFor(model => model.Email, new { @class = "form-control" })
+					@Html.ValidationMessageFor(model => model.Email)
+				</div>
+			</div>
+			<div class="col-md-2"></div>
+			<div class="col-md-4">
+				<div class="form-group">
+					@Html.LabelFor(model => Model.FirstName)
+					@Html.DisplayFor(model => Model.FirstName, new { @class = "form-control" })
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.LastName)
+					@Html.DisplayFor(model => model.LastName, new { @class = "form-control" })
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.CampaignCount)
+					@Html.DisplayFor(model => model.CampaignCount, new { @class = "form-control" })
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.MmObjectCount)
+					@Html.DisplayFor(model => model.MmObjectCount, new { @class = "form-control" })
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.ViewCount)
+					@Html.DisplayFor(model => model.ViewCount, new { @class = "form-control" })
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.AdPoints)
+					@Html.EditorFor(model => model.AdPoints)
+					@Html.ValidationMessageFor(model => model.AdPoints)
+					@*<button type="button">Doładuj</button>*@
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.ClickAdd)
+					@Html.DisplayFor(model => model.ClickAdd, new { @class = "form-control" })
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.ClickSub)
+					@Html.DisplayFor(model => model.ClickSub, new { @class = "form-control" })
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.ViewAdd)
+					@Html.DisplayFor(model => model.ViewAdd, new { @class = "form-control" })
+				</div>
+				<div class="form-group">
+					@Html.LabelFor(model => model.ViewSub)
+					@Html.DisplayFor(model => model.ViewSub, new { @class = "form-control" })
+				</div>
+			</div>
+		</div>
+		<div class="panel-footer col-md-12">
+			<input type="submit" value="Zapisz" class="btn btn-success" />
+			<a href="@Url.Action("Index", "Default", new { ctr = "Account", act = "Manage" })" class="btn btn-danger">Wróć</a>
+		</div>
+	}
+</div>

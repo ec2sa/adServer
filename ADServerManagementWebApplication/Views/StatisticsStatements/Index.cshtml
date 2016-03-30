@@ -1,0 +1,226 @@
+﻿@model ADServerManagementWebApplication.Models.StatisticsStatementListViewModel
+
+@{
+	ViewBag.Title = "Moje kampanie → " + @Model.StatementTitle;
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+@section HeaderScripts
+{
+	<script type="text/javascript">
+
+		$(function () {
+
+			@if (Model.Filters.Filtering)
+            {
+                <text>
+			$("#accordion").accordion({
+				collapsible: true,
+				heightStyle: "content"
+			});
+			</text>
+            }
+            else
+            {
+                <text>
+			$("#accordion").accordion({
+				collapsible: true,
+				heightStyle: "content",
+				active: 'none'
+			});
+			</text>
+            }
+
+			$("#Filters_FilterDateFrom").datepicker(
+                {
+                	dateFormat: 'yy-mm-dd',
+                	showAnim: 'drop'
+                });
+
+
+			$("#Filters_FilterDateTo").datepicker(
+                {
+                	dateFormat: 'yy-mm-dd',
+                	showAnim: 'drop'
+                });
+
+			$('.informationContent').each(function () {
+				var e = $(this);
+				var edata = e.data('no');
+
+				var type = '@ViewContext.RouteData.Values["action"].ToString()';
+				var callAction = '';
+				if (type == 'MultimediaObjectStatement') callAction = 'ObjStatement';
+				else if (type == 'CampaignStatement') callAction = 'CmpStatement';
+
+				$.post('@Url.Content("~/StatisticsStatements")/' + callAction + '/?id=' + edata, function (data) {
+					e.find('.panel-body').html(data);
+				});
+			});
+		});
+	</script>
+	<script type="text/javascript">
+		function ActionLink(url, sortExpression, ascending, page) {
+
+			if (page == null)
+				page = 1;
+			if (url.indexOf('@Url.Content("~")') == -1 || url.indexOf('@Url.Content("~")') != 0)
+				url = '@Url.Content("~")' + url;
+			window.location = url + "?page=" + page + "&sortExpression=" + sortExpression + "&ascending=" + ascending;
+		};
+
+		function InnerActionLink(url, sortExpression, ascending, page, prefix, innerId) {
+			if (page == null)
+				page = 1;
+			url = '@Url.Content("~")' + url;
+			var dataJ = { page: parseInt(page), sortExpression: sortExpression, ascending: ascending, id: innerId };
+			$.ajax({
+				type: 'POST',
+				url: url,
+				data: JSON.stringify(dataJ),
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'html',
+				success: function (data) {
+					$('div#accordion_' + innerId + '.panel-group div.panel div#collapse_' + innerId + '.panel-collapse div.panel-body').html(data);
+					return;
+				},
+				error: function () {
+					alert('Błąd segregacji!');
+
+				}
+			});
+		};
+	</script>
+}
+
+@if (Model.StatementType == ADServerDAL.Entities.Presentation.StatisticsStatementType.Campaign)
+{
+	ViewBag.Conttroler = "Campaign";
+	ViewBag.Back = "Campaign";
+}
+else
+{
+	ViewBag.Conttroler = "MultimediaObjects";
+	ViewBag.Back = "MultimediaObject";
+
+}
+
+
+<div class="panel panel-danger">
+	<div class="panel panel-heading">
+		<h3 align="center">@ViewBag.Title</h3>
+	</div>
+	<div class="panel-body">
+		<div class="text-info">
+			(@Model.NumberOfResults wpisów znaleziono. Strona @Model.CurrentPage z @Model.TotalPages)
+		</div>
+		<br />
+
+
+		<div id="accordion">
+			<h3>Filtry</h3>
+			<div class="panel-group">
+
+				<table class="filters-table">
+					@using (Html.BeginForm())
+					{
+						<tr>
+							<td class="col-width-180">
+								<div class="single-filter-div single-filter-div100">
+									@Html.LabelFor(m => Model.Filters.FilterDateFrom)
+									@Html.TextBoxFor(x => Model.Filters.FilterDateFrom, "{0:yyyy-MM-dd}", new { @class = "form-control" })
+									@Html.ValidationMessageFor(m => Model.Filters.FilterDateFrom, "Nieprawidłowa data")
+								</div>
+							</td>
+							<td class="col-width-180">
+								<div class="single-filter-div single-filter-div100">
+									@Html.LabelFor(m => Model.Filters.FilterDateTo)
+									@Html.TextBoxFor(m => Model.Filters.FilterDateTo, "{0:yyyy-MM-dd}", new { @class = "form-control" })
+									@Html.ValidationMessageFor(m => Model.Filters.FilterDateTo, "Nieprawidłowa data")
+								</div>
+							</td>
+							<td class="col-width-180" style="vertical-align: bottom">
+								<div class="single-filter-div single-filter-div100">
+									@Html.Hidden("StatementType", @Model.StatementType)
+									<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick="ShowPleaseWaitPanel('Proszę czekać', true)" />
+									<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick="ClearFormFields(true)" />
+								</div>
+							</td>
+							<td></td>
+						</tr>
+					}
+				</table>
+			</div>
+		</div>
+		@{
+			string actionName = ViewContext.RouteData.Values["action"].ToString();
+			int rowNo = (((Model.CurrentPage - 1) * Model.ItemsPerPage) + 1);
+		}
+		<table id="ListTable" class="table table-striped table-condensed table-bordered">
+
+			@foreach (var item in Model.Statement)
+			{
+				<tr>
+					<td class="statistics-stamement-row" style="width: 300px !important;">
+						<div class="statistics-statement-row-header">
+							@Html.ActionLink(@item.Name ?? "OldDevice", "Edit", ViewBag.Conttroler as string, new { id = item.Id, returnUrl = Url.Content("~") + "?ctr=StatisticsStatements&act=" + @ViewBag.Back + "Statement" }, null)
+						</div>
+						<div>
+							@Html.Partial("DisplayCountSummary", @item)
+						</div>
+					</td>
+					<td>
+						@{
+				var callModel = "";
+				switch (ViewContext.RouteData.Values["action"].ToString())
+				{
+					case "MultimediaObjectStatement":
+						callModel = "ObjStatement";
+						break;
+					case "CampaignStatement":
+						callModel = "CmpStatement";
+						break;
+				}
+						}
+						<div id="informationContent_@item.Id" class="informationContent" data-no="@item.Id" data-call="@callModel">
+							<div class="panel-group" id="accordion_@item.Id">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<h4 class="panel-title">
+											<a data-toggle="collapse" data-parent="#accordion_@item.Id" href="#collapse_@item.Id">
+												<i class='glyphicon glyphicon-resize-vertical'></i>Statystyki
+											</a>
+										</h4>
+									</div>
+									<div id="collapse_@item.Id" class="panel-collapse collapse">
+										<div class="panel-body">
+											Ładowanie danych ...
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</td>
+				</tr>
+				rowNo++;
+			}
+
+		</table>
+	</div>
+
+	<nav class="Pager">
+		@{
+			string innertype = null;
+			if (ViewBag.Action == "CmpStatement")
+			{
+				innertype = "Cmp";
+			}
+			if (ViewBag.Action == "ObjStatement")
+			{
+				innertype = "Obj";
+			}
+		}
+		@Html.CreateNumericPager(Model.NumberOfResults, Model.ItemsPerPage, Model.CurrentPage, innertype, (int?)ViewBag.Id)
+	</nav>
+</div>

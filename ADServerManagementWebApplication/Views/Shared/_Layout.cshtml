@@ -1,0 +1,415 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Styles.Render("~/Content/themes/base/css")
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    <link href="~/Content/bootstrap-theme.css" rel="stylesheet" />
+    <link href="~/Content/ErrorStyles.css" rel="stylesheet" />
+    <link href="~/Content/Site.css" rel="stylesheet" />
+    <link href="~/Content/business-adapp.css" rel="stylesheet" />
+
+    @RenderSection("HeaderCss", false)
+    <style type="text/css">
+        #dialog-pleaseWaitPanel-animation {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 5px;
+        }
+    </style>
+
+    <script src="@Url.Content("~/Scripts/jquery.validate.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/jquery.unobtrusive-ajax.js")"></script>
+    <script src="@Url.Content("~/Scripts/Common/AdServerCommon.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/moment.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/lang/ui.datepicker-pl.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/lang/pl.messages.js")" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        function informationContent(id, toggle, parent) {
+            if (parent) $('#informationContent_' + id).parent().toggle();
+            else $('#informationContent_' + id).toggle();
+
+            if(toggle) $('#informationContent_' + id).html('Ładowanie zdalnej zawartości...');
+            $('#informationContent_' + id).load('@Url.Content("~/StatisticsStatements/CmpStatement/")?id='+id);
+        }
+    </script>
+
+    <script type="text/javascript">
+        function ADSrvConfirm(question, title, element) {
+            $('#dialog-confirm-message').html(question);
+            $("#dialog-confirm").attr('title', title);
+
+            $("#dialog-confirm").dialog({
+                resizable: false,
+                draggable: false,
+                height: 200,
+                width: 350,
+                modal: true,
+                buttons: {
+                    Tak:
+                        {
+                            click: function () {
+                                $(this).dialog("close");
+                                element.submit();
+                            },
+                            'class': 'btn btn-success',
+                            text: 'Tak',
+                            buttonText: 'Tak'
+                        },
+                    Nie:
+                        {
+                            click: function () {
+                                $(this).dialog("close");
+                            },
+                            'class': 'btn btn-danger',
+                            text: 'Nie',
+                            buttonText: 'Nie'
+                        }
+                },
+                open: function (event, ui) {
+                    $(this).parent().children().children('.ui-dialog-titlebar-close').hide();
+
+                }
+            });
+        }
+
+        $.validator.methods.number = function (value, element) {
+            value = floatValue(value);
+            return this.optional(element) || !isNaN(value);
+        }
+        $.validator.methods.range = function (value, element, param) {
+            value = floatValue(value);
+            return this.optional(element) ||
+				   (value >= param[0] && value <= param[1]);
+        }
+
+        function floatValue(value) {
+            if ($.isNumeric(value.replace(",", ".")))
+                return parseFloat(value.replace(",", "."));
+            return NaN;
+        }
+
+        function ADSrvError(error) {
+
+            var errorMessage = '<ul>';
+
+            if (error.responseJSON != null && error.responseJSON != undefined) {
+                errorMessage += '<li>' + error.responseJSON.ExceptionMessage + "</li>";
+            }
+            else if (error.Errors != undefined) {
+                $.each(error.Errors, function () {
+
+                    var propertyName = this.Property;
+                    if (propertyName != null || propertyName != "") {
+                        var message = this.Message;
+
+                        errorMessage += "<li>" + message + "</li>";
+
+                    }
+                });
+            }
+            if (errorMessage == '<ul>') {
+                return;
+            }
+
+            errorMessage += '</ul>';
+
+            $('#dialog-error-message').html(errorMessage);
+
+            $("#dialog-error").dialog({
+                resizable: true,
+                draggable: false,
+                height: 300,
+                width: 400,
+                modal: true,
+                buttons: {
+                    OK:
+                        {
+                            click: function () {
+                                $(this).dialog("close");
+                            },
+                            'class': 'btn btn-success',
+                            text: 'OK',
+                            buttonText: 'OK'
+                        }
+                },
+                open: function (event, ui) {
+                    HidePleaseWaitPanel();
+                    $(this).parent().children().children('.ui-dialog-titlebar-close').hide();
+
+                }
+            });
+        }
+
+
+        var pleaseWaitPanel;
+
+        function LoadPage(url) {
+            var urlAdr = url.split('/');
+            var adrLast = urlAdr[urlAdr.length - 1];
+            if (urlAdr.length > 2 && urlAdr[urlAdr.length - 2] != "AdServer")
+            	window.location = '@Url.Action("Index", "Default")?act=' + adrLast + '&ctr=' + urlAdr[urlAdr.length - 2];
+            	//alert('@Url.Action("Index", "Default")?act=' + adrLast + '&ctr=' + urlAdr[urlAdr.length - 2]);
+            else
+            	window.location = '@Url.Action("Index", "Default")?ctr=' + adrLast;
+            	//alert('@Url.Action("Index", "Default")?ctr=' + adrLast);
+        }
+
+        function ShowPleaseWaitPanel(message, onlyWhenFormIsvalid, showImage) {
+
+            HidePleaseWaitPanel();
+            if (onlyWhenFormIsvalid) {
+                if (!ClientSiteModelValidation()) {
+
+                    return;
+                }
+            }
+
+            if (showImage != null && showImage != undefined && !showImage) {
+                $("#dialog-pleaseWaitPanel-animation").hide();
+            } else {
+                $("#dialog-pleaseWaitPanel-animation").show();
+            }
+
+            $("#dialog-pleaseWaitPanel-message").text(message);
+
+            pleaseWaitPanel = $("#dialog-pleaseWaitPanel").dialog({
+                resizable: false,
+                draggable: false,
+                height: 200,
+                width: 200,
+                modal: true,
+                open: function (event, ui) {
+                    $(this).parent().children().children('.ui-dialog-titlebar-close').hide();
+                    $(this).parent().children('.ui-dialog-titlebar').hide();
+                },
+                buttons: {
+                }
+            });
+        }
+
+        function HidePleaseWaitPanel() {
+            if (pleaseWaitPanel != null && pleaseWaitPanel != undefined) {
+                pleaseWaitPanel.dialog("close");
+            }
+        }
+
+
+        function ClearValidationMessages() {
+            $("span[data-valmsg-for]").removeClass('field-validation-error').hide();
+        }
+
+
+        function ShowValidationMessages(r, prefix) {
+            ClearValidationMessages();
+            $.each(r.Errors, function () {
+
+                var propertyName = this.Property;
+                if (propertyName != null && propertyName != undefined && propertyName != "") {
+                    var message = this.Message;
+
+                    $('#' + prefix + '_' + propertyName).addClass('input-validation-error');
+                    var msgSpan = $("span[data-valmsg-for='" + prefix + "." + propertyName + "']");
+                    if (msgSpan != undefined && msgSpan.length == 1) {
+                        msgSpan.first().text(message).addClass('field-validation-error').show();
+                    }
+
+                }
+            });
+        }
+
+
+        
+
+        $(document).ready(function () {
+            $.datepicker.setDefaults($.datepicker.regional['pl']);
+            HidePleaseWaitPanel();
+
+            $('#vcard-trigger').popover({
+                html: true,
+                content: function () {
+                    return $('#vcard').html();
+                },
+                title: 'Użytkownik',
+                width: '400px'
+            });
+
+            $('.business-header').on('click', function (event) {
+                $(this).slideUp();
+                $('.navbar-brand').fadeIn();
+            });
+
+            $('.navbar-brand').on('click', function (event) {
+                $(this).fadeOut();
+                $('.business-header').slideDown();
+            });
+
+            $('.navbar-brand').tooltip();
+        });
+    </script>
+    @RenderSection("HeaderScripts", false)
+    @RenderSection("JavaScript", false)
+</head>
+<body>
+
+    <div class="navbar navbar-grey" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a style="display:none;" class="navbar-brand" href='#' data-toggle="tooltip" data-placement="right" title="Pierwsza platforma reklamowa dla samodzielnych aplikacji.">
+                    <img src="~/Content/logo.png" alt="Logo" />
+                </a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav" id="mainMenu">
+                    @if (ViewBag != null && ViewBag.MenuOptions != null)
+                    {
+                        foreach (ADServerManagementWebApplication.Models.Menu option in ViewBag.MenuOptions)
+                        {
+                            var claims = User == null ? null : ((System.Security.Claims.ClaimsIdentity)User.Identity).Claims;
+                            if (claims != null && claims.Count() != 0 && (option.Role == null || option.Role.Contains(claims.First(it => it.Type == ClaimTypes.Role).Value)))
+                            {
+                                @Html.Partial("MenuOption", option);
+                            }
+                        }
+                    }
+                </ul>
+                @using System.IdentityModel.Claims				@using System.ServiceModel.Security.Tokens				@using ADServerManagementWebApplication.Extensions
+                @using Microsoft.AspNet.Identity
+                @using ClaimTypes = System.Security.Claims.ClaimTypes
+                @if (Request.IsAuthenticated && User != null)
+                {
+                    @Html.AntiForgeryToken()
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown idcard">
+                            <a href="#" id="vcard-trigger" class="not-underlined" data-container="body" data-toggle="popover" data-placement="bottom">
+                                <i class="glyphicon glyphicon-user"></i>
+                                @User.Identity.GetUserName() <i>(@User.GetLongName())</i> &nbsp;<span class="badge success"><i class="UserAdPoints">@ViewBag.AdPoints</i></span>
+                                <b class="caret"></b>
+                            </a>
+
+                            @*<ul class="dropdown-menu">
+                                <li class="nav-not-link">*@
+                            <div id="vcard" style="display: none;">
+                                <table>
+                                    <tr>
+                                        <td rowspan="2">
+                                            <i id="avatar" class="Three-Dee glyphicon glyphicon-user"></i>
+                                        </td>
+                                        <td>
+                                            <b>Tożsamość:</b><br />
+                                            @User.GetLongName()
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <b>Poziom:</b><br />
+                                            @User.GetRole()
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td>
+                                            <b>Ilość punktów:</b><br />
+                                            <i class="UserAdPointsInner">@ViewBag.AdPoints</i>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <hr />
+                                <div id="links">
+                                    @Html.ActionLink("Wyloguj", "Logoff", "Account", routeValues: null, htmlAttributes: new { id = "logoutLink" })
+                                </div>
+                            </div>
+                            @*</li>*@
+
+                        @*<li role="presentation" class="divider"></li>
+
+                        <li>@Html.ActionLink("Wyloguj", "Logoff", "Account", routeValues: null, htmlAttributes: new { id = "logoutLink" })</li>
+                    </ul>*@
+                        </li>
+                    </ul>
+                }
+                else
+                {
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>@Html.ActionLink("Zaloguj", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+                        <li>@Html.ActionLink("Zarejestruj się", "Register", "Account")</li>
+                    </ul>
+                }
+
+            </div>
+        </div>
+    </div>
+
+    <div class="business-header">
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <!-- The background image is set in the custom CSS -->
+                    <div style="width: 800px; ">
+                        <img src="~/Content/logo.png" alt="" style="display: block; float: left; margin-top: 0; margin-right: 20px;" />
+                        <h1>Pierwsza platforma reklamowa dla samodzielnych aplikacji.</h1>
+                        <p>
+                            Korzystaj z reklam w aplikacjach stand-alone na komputerach stacjonarnych i aplikacjach na urządzenia mobilne.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row-main">
+            @Html.Partial("_Messages")
+            @RenderBody()
+    </div>
+    .
+
+    <div id="dialog-confirm" style="display: none">
+            <label class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></label>
+            <div id="dialog-confirm-message"></div>
+    </div>
+
+    <div id="dialog-error" style="display: none" title="Błąd !!!">
+            <div id="dialog-error-message" class="alert-danger"></div>
+    </div>
+
+    <div id="dialog-pleaseWaitPanel" style="display: none">
+            <div id="dialog-pleaseWaitPanel-message" class="text-center"></div>
+            <div>
+                <img id="dialog-pleaseWaitPanel-animation" alt="Czekaj" src="@Url.Content("~/Content/ajax-loader.gif")" />
+            </div>
+    </div>
+
+    <footer>
+        <div class="row">
+            <div class="col-lg-12">
+                <p>
+                    Właścicielem platformy AdApp jest EC2 S.A.
+                    &nbsp;
+                    <a target="_blank" href="http://www.ec2.pl/">www.ec2.pl</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

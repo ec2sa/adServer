@@ -1,0 +1,102 @@
+﻿@using System.IdentityModel.Claims
+@using ADServerDAL.Models
+@using EC2
+@model ADServerManagementWebApplication.Models.CampaignListViewModel
+
+@{
+	ViewBag.Title = "Lista kampanii";
+	Layout = "~/Views/Shared/_BaseLayout.cshtml";
+}
+
+@section Filters
+{
+	@using (Html.BeginForm())
+	{
+		<tr>
+			@Html.AdServerFilter(m => m.Filters.FilterStartDateFrom, true, "{0:yyyy-MM-dd}", new { @class = "form-control datapicker filter" }, "Niepoprawna data")
+			@Html.AdServerFilter(m => m.Filters.FilterStartDateTo, true, "{0:yyyy-MM-dd}", new { @class = "form-control datapicker filter" }, "Niepoprawna data")
+
+			@Html.AdServerFilter(m => m.Filters.FilterEndDateFrom, true, "{0:yyyy-MM-dd}", new { @class = "form-control datapicker filter" }, "Niepoprawna data")
+			@Html.AdServerFilter(m => m.Filters.FilterEndDateTo, true, "{0:yyyy-MM-dd}", new { @class = "form-control datapicker filter" }, "Niepoprawna data")
+
+			<td class="col-width-180" style="vertical-align: bottom" rowspan="2">
+				<div class="single-filter-div single-filter-div100">
+					<input class="btn btn-success" type="submit" name="action:List" value="Filtruj" onclick="FiltersSort('Campaign');" />
+					<input class="btn btn-danger" type="submit" name="action:ClearFilters" value="Wyczyść" onclick="ClearFilters('Campaign')" />
+				</div>
+			</td>
+		</tr>
+		<tr>
+			@Html.AdServerFilter(m => m.Filters.FilterName, true, htmlObject: new { @class = "form-control filter" })
+			<td class="col-width-180">
+				<div class="single-filter-div single-filter-div100">
+					@Html.LabelFor(m => Model.Filters.FilterActive)
+					@Html.DropDownListFor(m => m.Filters.FilterActive, Model.Filters.YesNo, "",
+						new { @class = "form-control filter" })
+				</div>
+			</td>
+			<td class="col-width-180">
+				<div class="single-filter-div single-filter-div100">
+					@Html.LabelFor(m => Model.Filters.FilterPriorityId)
+					@Html.DropDownListFor(m => m.Filters.FilterPriorityId, Model.Filters.Priorities, "",
+						new { @class = "form-control filter" })
+				</div>
+			</td>
+
+			@if (User.IsInRole("Admin"))
+			{
+				@Html.AdServerFilter(m => m.Filters.FilterLogin, true, htmlObject: new { @class = "form-control filter" })
+			}
+		</tr>
+	}
+}
+@section OverTable
+{
+	@Html.ActionLink("Utwórz nową kampanię", "Edit", null, new { @class = "btn btn-success" })
+}
+@section Table
+{
+	<tr>
+		@{
+			var url = @Url.Action("Index", "Campaign");
+		}
+
+		@Html.AdServerSegregate("right", url, "Id", @Model.SortAccending, "ID")
+		@Html.AdServerSegregate("left", url, "Name", @Model.SortAccending, "Nazwa")
+		@Html.AdServerSegregate("right", url, "StartDate", @Model.SortAccending, "Data rozpoczęcia", thWidth: 2)
+		@Html.AdServerSegregate("right", url, "EndDate", @Model.SortAccending, "Data zakończenia", thWidth: 2)
+		@Html.AdServerSegregate("center", url, "IsActive", @Model.SortAccending, "Aktywna", thWidth: 3)
+		@Html.AdServerSegregate("center", url, "Priority.Name", @Model.SortAccending, "Priorytet", thWidth: 3)
+		@if (@User.IsInRole("Admin"))
+		{
+			@Html.AdServerSegregate("center", url, "User.Name", @Model.SortAccending, "Użytkownik", thWidth: 3);
+		}
+	
+		<th class="text-center" width="2%"> Akcje</th>
+	</tr>
+
+
+	@foreach (Campaign item in Model.Campaigns)
+	{
+		<tr>
+			<td style="width: 25px;" class="text-right">@item.Id</td>
+            <td>@Html.ActionLink(item.Name, "Edit", new { ID = item.Id })</td>
+
+            <td style="width: 80px;" class="text-right">@item.StartDate.ToString("d")</td>
+            <td style="width: 80px;" class="text-right">@item.EndDate.ToString("d")</td>
+			<td class="text-center">@Html.DisplayFor(i => item.IsActive)</td>
+			<td class="text-center">@Html.DisplayFor(i => item.Priority.Name, new { PreventLineBreak = true })</td>
+			@if (User.IsInRole("Admin"))
+			{
+				<td class="text-center">@item.User.Name</td>
+			}
+			<td class="actions">
+				@using (Html.BeginForm("Delete", "Campaign"))
+				{
+					@Html.Hidden("Id", item.Id)
+					<i onclick="ADSrvConfirm('Czy napewno usunąć kampanię @item.Name    ?','Usuwanie', this.parentNode)" class="glyphicon glyphicon-trash pointer"></i>
+				}
+			</td>
+		</tr>
+	}
+}
