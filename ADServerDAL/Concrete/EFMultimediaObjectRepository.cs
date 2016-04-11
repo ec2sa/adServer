@@ -9,6 +9,7 @@ using ADServerDAL.Helpers;
 using System.IO;
 using System.Drawing;
 using ADServerDAL.Models;
+using System.Threading;
 
 namespace ADServerDAL.Concrete
 {
@@ -46,7 +47,7 @@ namespace ADServerDAL.Concrete
 		/// Zapisuje obiekt multimedialny do bazy
 		/// </summary>
 		/// <param name="multimediaObject">Obiekt multimedialny</param>  
-		public ApiResponse Save(MultimediaObject multimediaObject)
+        public ApiResponse Save(MultimediaObject multimediaObject, List<Campaign> Camps)
 		{
 			var response = new ApiResponse();
 
@@ -76,33 +77,38 @@ namespace ADServerDAL.Concrete
 						// Konwersja formatu base64 na tablicę bajtów
 						var imageBytes = Convert.FromBase64String(multimediaObject.FileContent);
 
-						// Zmiana rozmiaru obrazka do odpowiedniego typu obiektu multimedialnego
-						ImageProcesorHelper.ResizeImageResult resizeResult = ImageProcesorHelper.ResizeImage(multimediaObjectType.Width, multimediaObjectType.Height, imageBytes);
-						imageBytes = resizeResult.ResizedImage;
-						byte[] thumbnail = resizeResult.Thumbnail;
+						byte[] thumbnail = imageBytes;
 
 						#region Zapis danych podstawowych obiektu
 						if (multimediaObject.Id > 0)
 						{
-							dbEntry = Context.MultimediaObjects.SingleOrDefault(f => f.Id == multimediaObject.Id);
-							if (dbEntry != null)
-							{
-								dbEntry.UserId = multimediaObject.UserId;
-								
-								dbEntry.FileName = multimediaObject.FileName;
-								dbEntry.MimeType = multimediaObject.MimeType;
-								dbEntry.Name = multimediaObject.Name;
-								dbEntry.TypeId = multimediaObject.TypeId;
-								dbEntry.Url = multimediaObject.Url;
-								dbEntry.Contents = imageBytes;
-								dbEntry.Thumbnail = thumbnail;
+                            dbEntry = Context.MultimediaObjects.SingleOrDefault(f => f.Id == multimediaObject.Id);
+                            if (dbEntry != null)
+                            {
+                                dbEntry.UserId = multimediaObject.UserId;
 
-								SetRelation(multimediaObject, ref dbEntry);
-								Context.SaveChanges();
+                                dbEntry.FileName = multimediaObject.FileName;
+                                dbEntry.MimeType = multimediaObject.MimeType;
+                                dbEntry.Name = multimediaObject.Name;
+                                dbEntry.TypeId = multimediaObject.TypeId;
+                                dbEntry.Url = multimediaObject.Url;
+                                dbEntry.Contents = imageBytes;
+                                dbEntry.Thumbnail = thumbnail;
+
+                                SetRelation(multimediaObject, ref dbEntry);
+                                Context.SaveChanges();
 							}
 						}
 						else
 						{
+                            ICollection<Campaign> CampList = new List<Campaign>();
+                            foreach (var camp in Camps)
+                            {
+                                Campaign c = Context.Campaigns.FirstOrDefault(p => p.Id == camp.Id);
+                                Context.Campaigns.Attach(c);
+                                CampList.Add(c);
+                            }
+
 							dbEntry = new MultimediaObject
 							{
 								FileName = multimediaObject.FileName,
@@ -112,12 +118,15 @@ namespace ADServerDAL.Concrete
 								Url = multimediaObject.Url,
 								Contents = imageBytes,
 								Thumbnail = thumbnail,
-								UserId = multimediaObject.UserId
+								UserId = multimediaObject.UserId,
+                                Campaigns = CampList,
+                                Content = multimediaObject.Contents,
+                                
 							};
-
-							SetRelation(multimediaObject,ref dbEntry);
-
-							Context.MultimediaObjects.Add(dbEntry);
+                            
+                            SetRelation(multimediaObject,ref dbEntry);
+                            
+                            Context.MultimediaObjects.Add(dbEntry);
 							Context.SaveChanges();
 						}
 						#endregion
@@ -233,5 +242,79 @@ namespace ADServerDAL.Concrete
 		{
 			SetNewContext(context);
 		}
-	}
+
+        public int GetIntFromCamName(string name)
+        {
+            var C = Context.Campaigns.FirstOrDefault(p => p.Name == name);
+            var id = Context.MultimediaObjects.FirstOrDefault(p => p.Campaigns.FirstOrDefault(m => m.Name == name) == C).Id;
+
+            return id;
+        }
+
+        public MultimediaObject GetFromCamName(string name)
+        {
+            return GetById(GetIntFromCamName(name));
+        }
+
+        public MultimediaObject GetByCampAndType(Device device)
+        {
+            var u = Context.Campaigns.FirstOrDefault(it => it.Name == "LogoEC2" && it.User.Role.Name == "Admin");
+            var image = Context.MultimediaObjects.FirstOrDefault(p => p.Campaigns.FirstOrDefault(m => m.Id == u.Id).MultimediaObjects.FirstOrDefault(n => n.TypeId == device.Id) != null);
+
+            return image;
+        }
+
+        #region CropImage
+
+        public ApiResponse CropAndSave(int id,byte[] Image)
+        {
+            var obj = Context.MultimediaObjects.FirstOrDefault(p => p.Id == id);
+            var typ = Context.Types.FirstOrDefault(m => m.Id == obj.TypeId);
+
+            ImageProcesorHelper.ResizeImageResult resizeResult = ImageProcesorHelper.ResizeImage(typ.Width, typ.Height, Image);
+            Image = resizeResult.ResizedImage;
+            byte[] thumbnail = resizeResult.Thumbnail;
+
+            obj.Contents = Image;
+            obj.Content = Image;
+            obj.FileContent = Convert.ToBase64String(Image);
+            obj.Thumbnail = thumbnail;
+
+            Context.SaveChanges();
+
+            var response = new ApiResponse();
+            response.Accepted = true;
+
+            return response;
+        }
+
+        #endregion
+
+        #region helpers
+        public MultimediaObject EditCamps(MultimediaObject image, List<int> CampsList)
+        {
+            //var image = Context.MultimediaObjects.FirstOrDefault(p => p.Id == imageId);
+
+                foreach (var campItem in image.Campaigns.ToList())
+                {
+                    if (!CampsList.Contains(campItem.Id))
+                    {
+                        image.Campaigns.Remove(campItem);
+                    }
+                }
+
+                foreach (var campItem in CampsList)
+                {
+                    if (!image.Campaigns.Any(c => c.Id == campItem))
+                    {
+                        var campa = Context.Campaigns.SingleOrDefault(c => c.Id == campItem);
+                        image.Campaigns.Add(campa);
+                    }
+                }
+                //Context.SaveChanges();
+
+                return image;
+        }
+        #endregion
+    }
 }

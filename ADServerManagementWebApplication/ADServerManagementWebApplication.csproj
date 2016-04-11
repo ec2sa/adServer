@@ -179,6 +179,7 @@
     <Compile Include="Controllers\AdController.cs" />
     <Compile Include="Controllers\API\ApiCampaignController.cs" />
     <Compile Include="Controllers\API\ApiCampaignCategoriesController.cs" />
+    <Compile Include="Controllers\API\ApiCropperController.cs" />
     <Compile Include="Controllers\API\ApiDeviceController.cs" />
     <Compile Include="Controllers\API\ApiMultimediaObjectsController.cs" />
     <Compile Include="Controllers\API\ApiUploadController.cs" />
@@ -195,6 +196,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\CroppHelper.cs" />
+    <Compile Include="Helpers\FileHelper.cs" />
+    <Compile Include="Helpers\ImageHelper.cs" />
     <Compile Include="Helpers\NumericPagerHelper.cs" />
     <Compile Include="Infrastructure\AdServerBaseApiController.cs" />
     <Compile Include="Infrastructure\AdServerBaseController.cs" />
@@ -212,6 +216,8 @@
     <Compile Include="Models\AccountModels\RoleViewModel.cs" />
     <Compile Include="Models\EditModels\CampaignPriorityViewModel.cs" />
     <Compile Include="Models\EditModels\CampaignCategoryViewModel.cs" />
+    <Compile Include="Models\EditModels\CropAndAddMultimediaObjectViewModel.cs" />
+    <Compile Include="Models\EditModels\CropAndEditMultimediaObjectViewModel.cs" />
     <Compile Include="Models\EditModels\DeviceViewModel.cs" />
     <Compile Include="Models\EditModels\MultimediaTypeViewModel.cs" />
     <Compile Include="Models\ErrorModel.cs" />
@@ -245,6 +251,10 @@
     <Content Include="Content\business-adapp.css" />
     <Content Include="Content\close_48.png" />
     <Content Include="Content\ErrorStyles.css" />
+    <Content Include="Content\images\close_active.png" />
+    <Content Include="Content\images\close_passive.png" />
+    <Content Include="Content\images\panel.png" />
+    <Content Include="Content\jquery-pop-up.css" />
     <Content Include="Content\jquery.fileupload-ui-noscript.css" />
     <Content Include="Content\jquery.fileupload-ui.css" />
     <Content Include="Content\logo.png" />
@@ -341,12 +351,21 @@
     <Content Include="Scripts\Campaign\Edit\CampaignViewModel.js" />
     <Content Include="Scripts\Common\Entities\CampaignCategory.js" />
     <Content Include="Scripts\Common\Entities\Campaign.js" />
+    <Content Include="Scripts\Common\Entities\CropperViewModel.js" />
     <Content Include="Scripts\Common\Entities\DeviceViewModel.js" />
     <Content Include="Scripts\Common\Entities\MultimediaObject.js" />
     <Content Include="Scripts\Common\SelectCampaign.js" />
     <Content Include="Scripts\Common\SelectCategories.js" />
     <Content Include="Scripts\Common\SelectDevices.js" />
     <Content Include="Scripts\Common\SelectObjects.js" />
+    <Content Include="Scripts\crop\css\Jcrop.gif" />
+    <Content Include="Scripts\crop\css\jquery.Jcrop.css" />
+    <Content Include="Scripts\crop\css\jquery.Jcrop.min.css" />
+    <Content Include="Scripts\crop\js\html2canvas.js" />
+    <Content Include="Scripts\crop\js\jquery.color.js" />
+    <Content Include="Scripts\crop\js\jquery.Jcrop.js" />
+    <Content Include="Scripts\crop\js\jquery.Jcrop.min.js" />
+    <Content Include="Scripts\crop\js\jquery.min.js" />
     <Content Include="Scripts\Device\Edit\Device.js" />
     <Content Include="Scripts\globalize\cultures\globalize.culture.af-ZA.js" />
     <Content Include="Scripts\globalize\cultures\globalize.culture.af.js" />
@@ -707,6 +726,7 @@
     <Content Include="Scripts\jquery-2.1.1.min.js" />
     <Content Include="Scripts\jquery-migrate-1.2.1.js" />
     <Content Include="Scripts\jquery-migrate-1.2.1.min.js" />
+    <Content Include="Scripts\jquery-popup.js" />
     <Content Include="Scripts\jquery.fileupload-ui.js" />
     <Content Include="Scripts\jquery.fileupload.js" />
     <Content Include="Scripts\jquery.iframe-transport.js" />
@@ -820,10 +840,13 @@
     <Content Include="Views\StatisticsStatements\DetailsList.cshtml" />
     <Content Include="Views\StatisticsStatements\IndexSingle.cshtml" />
     <Content Include="Views\StatisticsStatements\DevReport.cshtml" />
+    <Content Include="Views\MultimediaObjects\Add.cshtml" />
+    <Content Include="Views\Shared\Edit\_EditDevice.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Logs\" />
+    <Folder Include="Views\ApiCropper\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

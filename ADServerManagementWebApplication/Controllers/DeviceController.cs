@@ -8,6 +8,7 @@ using ADServerManagementWebApplication.Infrastructure;
 using ADServerManagementWebApplication.Infrastructure.ErrorHandling;
 using ADServerManagementWebApplication.Models;
 using Microsoft.Ajax.Utilities;
+using ADServerDAL.Concrete;
 
 namespace ADServerManagementWebApplication.Controllers
 {
@@ -58,14 +59,18 @@ namespace ADServerManagementWebApplication.Controllers
 			var us = _usersRepository.Users.Single(it => it.Id == ids);
 			ViewBag.AdPoints = us.AdPoints;
 
-			var u = User.GetUserIDInt();
+            var u = ids;// User.GetUserIDInt();
 			var r = User.GetRole();
 			if (id != null)
 			{
 				id = r == "Admin" || _repository.Devices.FirstOrDefault(it => it.Id == id && it.UserId == u) != null ? id : 0;
 			}
 
-			var device = (id == null || id == 0) ? new Device() : _repository.Devices.First(it => it.Id == id);
+            var device = (id == null || id == 0) ? new Device() : _repository.Devices.First(it => it.Id == id);
+            if(device != null)
+            {
+                if (device.UserId != ids && us.Role.Name != "Admin" && device.UserId != null) { return RedirectToAction("Index"); };
+            }
 			ViewBag.SelectList = new SelectList(_campaign.Campaigns, "Id", "Name");
 
 			var model = new DeviceViewModel
@@ -75,7 +80,7 @@ namespace ADServerManagementWebApplication.Controllers
 				UserId = device.UserId,
 				Campaign = device.Campaigns.Select(it => it.Id),
 				Description = device.Description,
-				TypeId = device.TypeId
+				TypeId = device.TypeId,
 			};
 			ViewBag.Return = string.IsNullOrEmpty(returnUrl) ? Url.Content("~") + "?ctr=Device&act=index" : returnUrl;
 			
@@ -83,7 +88,8 @@ namespace ADServerManagementWebApplication.Controllers
 				_typeRepository.Types.Select(it => new { Value = it.Id, Text = it.Name + " szer: " + it.Width + "px wys: " + it.Height + "px" });
 
 			ViewBag.Types = new SelectList(t, "Value", "Text");
-			return View(model);
+            
+            return View(model);
 		}
 		/// <summary>
 		/// Edycja nośnika - post
@@ -92,7 +98,7 @@ namespace ADServerManagementWebApplication.Controllers
 		/// <returns>Widok powrotu</returns>
 		[System.Web.Mvc.HttpPost]
 		[ValidateAntiForgeryToken]
-		public ActionResult Edit(Device device)
+		public ActionResult Edit(DeviceViewModel device)
 		{
 			var ids = User.GetUserIDInt();
 			var u = _usersRepository.Users.Single(it => it.Id == ids);
@@ -104,7 +110,8 @@ namespace ADServerManagementWebApplication.Controllers
 				_repository.Save(device);
 				return RedirectToAction("Index", "Default", new { ctr = "Device" });
 			}
-			return View(device);
+
+            return View(device);
 		}
 
 		[AdServerActionException]
@@ -134,10 +141,17 @@ namespace ADServerManagementWebApplication.Controllers
 		{
 			var ids = User.GetUserIDInt();
 			var us = _usersRepository.Users.Single(it => it.Id == ids);
+            
 			ViewBag.AdPoints = us.AdPoints;
 
 			var dev = _repository.Devices.SingleOrDefault(it => it.Id == id);
-			return View(dev);
+            
+            if (dev.UserId == ids || us.Role.Name == "Admin")
+            {
+                return View(dev);
+            }
+            else
+                return RedirectToAction("Index");
 		}
 
 		/// <summary>

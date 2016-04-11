@@ -338,5 +338,10 @@ namespace ADServerDAL.Concrete
 		{
 			SetNewContext(context);
 		}
+
+        public Campaign GetByName(string Name)
+        {
+            return Context.Campaigns.FirstOrDefault(p => p.Name == Name);
+        }
 	}
 }

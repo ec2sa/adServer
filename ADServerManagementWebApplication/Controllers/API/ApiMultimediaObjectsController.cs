@@ -85,7 +85,8 @@ namespace ADServerManagementWebApplication.Controllers
         {
 			if(multimediaObject.UserId == 0 || (!User.IsInRole("Admin") && User.GetUserIDInt() != multimediaObject.UserId))
 				multimediaObject.UserId = User.GetUserIDInt();
-            return objectRepository.Save(multimediaObject);
+            List<Campaign> CampList = multimediaObject.Campaigns.ToList();
+            return objectRepository.Save(multimediaObject, CampList);
         }
 
         /// <summary>
@@ -100,11 +101,16 @@ namespace ADServerManagementWebApplication.Controllers
             {
 				var adminRole =  User.IsInRole("Admin") ;
 				var id = adminRole && request.Id != 0 ? (int)objectRepository.MultimediaObjects.FirstOrDefault(it => it.Id == request.Id).UserId : User.GetUserIDInt();
-
+                
 				var allCampaigns = campaignRepository.Campaigns
 					.Where(it => it.UserId == id || (adminRole && request.Id == 0))
 					.Select(it => new CampToMM { Id = it.Id, ClickValue = it.ClickValue, EndDate = it.EndDate, IsActive = it.IsActive, Name = it.Name, ViewValue = it.ViewValue, StartDate = it.StartDate });
 				
+                if(adminRole)
+                {
+                    allCampaigns = campaignRepository.Campaigns.Select(it => new CampToMM { Id = it.Id, ClickValue = it.ClickValue, EndDate = it.EndDate, IsActive = it.IsActive, Name = it.Name, ViewValue = it.ViewValue, StartDate = it.StartDate });
+                }
+
                 var connectedCampaigns = new List<int>();
 
                 if (request.Id > 0)

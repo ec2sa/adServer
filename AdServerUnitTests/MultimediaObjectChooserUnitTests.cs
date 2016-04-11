@@ -14,6 +14,7 @@ namespace AdServerUnitTests
     [TestClass]
     public class MultimediaObjectChooserUnitTests
     {
+
         #region - Fields -
         private static bool FILESTREAM_OPTION = false;
         private List<AdFile> fetchedFiles;
@@ -62,6 +63,7 @@ namespace AdServerUnitTests
         [TestMethod]
         public void RequestParamIsIncomplete()
         {
+
             ///przypadek, kiedy w obiekcie requesta są wypełnione tylko niezbędne pola
             var request = new ADEngineMultimediaSelectionAlgorythm.MultimediaObjectSelection.MultimediaObjectsSelectionParams();
 			//request.CategoryCodes = new string[] { "MED", "MTR" };

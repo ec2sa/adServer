@@ -40,5 +40,7 @@ namespace ADServerDAL.Abstract
 		/// </summary>
 		/// <param name="Id">Identyfikator kategorii</param>
 		IEnumerable<int> CatoegoriesToDev(int Id);
+
+        Device GetDeviceById(int id);
 	}
 }

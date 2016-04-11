@@ -1,7 +1,7 @@
 ﻿<fieldset class="panel-group">
 	<table class="filters-table">
-		<tr>
-			<td class="col-width-180">
+		<tr class="row">
+			<td class="col-md-6">
 				<div class="single-filter-div single-filter-div100">
 					@Html.Label("Filter_ConnectedDevices_Name", "Filtruj po nazwie/opisie : ")
 					@Html.TextBox("Filter_ConnectedDevices_Name", "", new { @class = "form-control" })
@@ -9,11 +9,11 @@
 				<input class="btn btn-sm btn-success" type="button" value="Filtruj" onclick="RefreshConnectedDevicesUI();" />
 				<input class="btn btn-sm btn-warning" type="button" value="Wyczyść" onclick="ClearConnectedDevicesFilters();" />
 			</td>
-		</tr>
+</tr>
 	</table>
 </fieldset>
 <div>
-	<input id="btnRemoveObject" type="button" class="btn btn-danger" value="Usuń zaznaczone obiekty" onclick="RemoveDevice()" />
+    <input id="btnRemoveObject" type="button" class="btn btn-danger" value="Usuń zaznaczone obiekty" onclick="RemoveDevice()" />
 </div>
 <table class="table table-striped table-condensed table-bordered">
 	<thead>
@@ -35,4 +35,38 @@
 	<tbody id="Devices">
 	</tbody>
 </table>
+
+<script>
+    load();
+
+    function load() {
+        $('#imgPreview').on('load', function () {
+            $('#loader_img').hide();
+        });
+    };
+</script>
+<style>
+    .tooltip{
+        max-width:none;
+        max-height:none;
+    }
+    .tooltip-inner {
+            max-width: none;
+            white-space: nowrap;
+        }
+    .glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+</style>
 

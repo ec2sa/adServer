@@ -124,11 +124,12 @@ namespace ADServerDAL.Concrete
 
 						var device = new Device();
 						var devRepo = new EFDeviceRepository();
+                        var imageRepo = new EFMultimediaObjectRepository();
 						var u = Context.Campaigns.FirstOrDefault(it => it.Name == "LogoEC2" && it.User.Role.Name == "Admin");
 
 						device.Name = "LogoEC2";
 						device.Description = "Przykładowa kampania AdServera";
-						device.TypeId = (int)u.MultimediaObjects.First().TypeId;
+                        device.TypeId = (int)u.MultimediaObjects.First().TypeId;
 						device.UserId = dbEntry.Id;
 
 						var camps = new List<Campaign>();
@@ -137,10 +138,11 @@ namespace ADServerDAL.Concrete
 						cats.AddRange(u.Categories);
 
 						device.Campaigns.Add(u);
-						device.Categories = u.Categories;
+						//device.Categories = u.Categories;
 						devRepo.Save(device);
 						dbEntry.Devices = new Collection<Device> { device };
 						Context.SaveChanges();
+
 					}
 
 					#endregion Zapis danych podstawowych kampanii

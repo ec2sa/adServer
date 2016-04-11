@@ -163,7 +163,7 @@ namespace URLAdContentProvider.Controllers
 						bool.TryParse(urlKey, out filestreamOption);
 					}
 
-					var response = mos.GetMmObjectUrl(int.Parse(cookie.Values["Id"]), int.Parse(cookie.Values["StatusCode"]), int.Parse(cookie.Values["cmp"]), selectionRequest);
+					var response = mos.GetMmObjectUrl(int.Parse(cookie.Values["Id"]), int.Parse(cookie.Values["StatusCode"]), int.Parse(cookie.Values["cmp"]), selectionRequest,true);
 					if (response != null)
 						return Redirect(response);
 					Redirect(Request.Url.Authority);

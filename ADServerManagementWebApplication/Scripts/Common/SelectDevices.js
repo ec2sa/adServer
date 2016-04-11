@@ -8,6 +8,8 @@ var connectedDevices = [];
 // Nośniki do usunięcia
 var deletedDevices = [];
 
+var availableDevices = [];
+
 // Ładowanie nośników
 function LoadDevices(url, id) {
 	var dataJSON = { Id: id };
@@ -66,10 +68,17 @@ function RefreshConnectedDevicesUI() {
            nameFilter.length == 0 ||
            name.toLowerCase().indexOf(nameFilter.toLowerCase()) != -1 ||
            description.toLowerCase().indexOf(nameFilter.toLowerCase()) != -1) {
-			var row = '<tr id="device.' + id + '"><td class="text-center" width="10%"> <input name="device.' + id + '" type="checkbox" class="selectionCB" /></td><td class="text-right">' + id + '</td><td class="text-left">' + name + '</td><td class="text-center">' + description + '</td></tr>';
+		    var host = window.location.host;
+		    var img = '<script>load();</script><h3 id="loader_img"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span></h3><img id="imgPreview" src="http://' + host + '/Ad?id=' + id + '" alt="Ad" />';
+		    var row = '<tr id="device.' + id + '"><td class="text-center" width="10%"> <input name="device.' + id + '" type="checkbox" class="selectionCB" /></td><td class="text-right">' + id + '</td><td class="text-left"><i data-toggle="tooltip" data-placement="bottom" title=\''+img+'\' data-html="true">' + name + '</i></td><td class="text-center">' + description + '</td></tr>';
 			$('#Devices').append(row);
 		}
 	}
+	$(function () {
+	    $('[data-toggle="tooltip"]').tooltip({
+	        'container': 'body'
+	    })
+	})
 }
 
 ///Wyczyszczenie filtrów dla listy przypisanych nośników

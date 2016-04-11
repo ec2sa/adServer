@@ -24,17 +24,24 @@ namespace ADServerManagementWebApplication.Controllers
 		private readonly IDeviceRepository _repository;
 		private readonly ICampaignRepository _campaignRepository;
 		private readonly ICategoryRepository _categoryRepository;
+        private readonly IUsersRepository _userRepository;
 
-		public ApiDeviceController(IDeviceRepository repository, ICampaignRepository campaignRepository, ICategoryRepository categoryRepository)
+		public ApiDeviceController(IDeviceRepository repository, ICampaignRepository campaignRepository, ICategoryRepository categoryRepository, IUsersRepository userRepository)
 		{
 			_repository = repository;
 			_campaignRepository = campaignRepository;
 			_categoryRepository = categoryRepository;
+            _userRepository = userRepository;
 		}
 
 		public ApiResponse SaveDevice(Device device)
 		{
-			device.UserId = User.GetUserIDInt();
+            if (device.Id != 0)
+            {
+                device.UserId = _repository.GetDeviceById(device.Id).UserId;//User.GetUserIDInt();
+            }else
+                device.UserId = User.GetUserIDInt();
+
 			var ret = _repository.Save(device);
 			return ret;
 		}
@@ -123,6 +130,12 @@ namespace ADServerManagementWebApplication.Controllers
 			try
 			{
 				var allCampaigns = _campaignRepository.Campaigns.ToList();
+                var UserId = User.GetUserIDInt();
+                if(User.GetRole() != "Admin")
+                {
+                    allCampaigns = _campaignRepository.Campaigns.Where(m => m.UserId == UserId).ToList();
+                }
+
 
 				var device = _repository.Devices.FirstOrDefault(it => it.Id == request.Id);
 

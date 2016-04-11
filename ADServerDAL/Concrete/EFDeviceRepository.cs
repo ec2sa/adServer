@@ -174,6 +174,11 @@ namespace ADServerDAL.Concrete
 			ObjectRelationCategory(device.Categories, ref dbEntry);
 			ObjectRelationCampaign(device.Campaigns, ref dbEntry);
 		}
+
+        public Device GetDeviceById(int id)
+        {
+            return Context.Devices.FirstOrDefault(p => p.Id == id);
+        }
 	}
 }
 

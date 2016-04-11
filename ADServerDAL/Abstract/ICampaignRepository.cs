@@ -56,5 +56,7 @@ namespace ADServerDAL.Abstract
         /// </summary>
         /// <param name="context">Nowy kontekst EF</param>
         void SetContext(System.Data.Entity.DbContext context);
+
+        Campaign GetByName(string Name);
     }
 }

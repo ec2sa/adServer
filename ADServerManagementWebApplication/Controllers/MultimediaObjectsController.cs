@@ -1,12 +1,19 @@
 ﻿using ADServerDAL.Abstract;
 using ADServerDAL.Filters;
+using ADServerDAL.Helpers;
 using ADServerDAL.Models;
 using ADServerManagementWebApplication.Extensions;
+using ADServerManagementWebApplication.Helpers;
 using ADServerManagementWebApplication.Infrastructure;
 using ADServerManagementWebApplication.Infrastructure.ErrorHandling;
 using ADServerManagementWebApplication.Models;
+using ADServerManagementWebApplication.Models.EditModels;
 using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 
 namespace ADServerManagementWebApplication.Controllers
@@ -23,6 +30,7 @@ namespace ADServerManagementWebApplication.Controllers
 		/// Repozytorium obiektów multimedialnych
 		/// </summary>
 		private IMultimediaObjectRepository _repository;
+        private ICampaignRepository _CampRepo;
 
 		/// <summary>
 		/// Repozytorium typów obiektów
@@ -112,43 +120,43 @@ namespace ADServerManagementWebApplication.Controllers
 		/// <param name="id"></param>
 		/// <param name="returnUrl"></param>
 		[AdServerActionExceptionAttribute]
-		public ActionResult Edit(int? id, string returnUrl)
+		public ActionResult Edit(int id, string returnUrl)
 		{
-			var ids = User.GetUserIDInt();
-			var u = _usersRepository.Users.Single(it => it.Id == ids);
-			ViewBag.AdPoints = u.AdPoints;
+            var ids = User.GetUserIDInt();
+            var u = _usersRepository.Users.Single(it => it.Id == ids);
+            ViewBag.AdPoints = u.AdPoints;
 
-			if (id != null)
-			{
-				id = UserRole == "Admin" || _repository.MultimediaObjects.FirstOrDefault(it => it.Id == id && it.UserId == UserId) != null ? id : 0;
-			}
-			// Pobierz obiekt z repozytorium
-			var multimediaObject = _repository.GetById(id ?? 0);
+            if (id != null)
+            {
+                id = UserRole == "Admin" || _repository.MultimediaObjects.FirstOrDefault(it => it.Id == id && it.UserId == UserId) != null ? id : 0;
+            }
+            // Pobierz obiekt z repozytorium
+            var multimediaObject = _repository.GetById(id);
 
-			var user = _usersRepository.Users.Single(it => it.Id == UserId);
-			var t =
-				_typeRespository.Types.Select(it => new { Value = it.Id, Text = it.Name + " szer: " + it.Width + "px wys: " + it.Height + "px" });
+            var user = _usersRepository.Users.Single(it => it.Id == UserId);
+            var t =
+                _typeRespository.Types.Select(it => new { Value = it.Id, Text = it.Name + " szer: " + it.Width + "px wys: " + it.Height + "px" });
+            
+            // Zbuduj i zwróć model
+            var viewModel = new CropAndEditMultimediaObjectViewModel
+            {
+                MultimediaObject = multimediaObject,
+                MultimediaTypes = new SelectList(t, "Value", "Text"),
+                Guid = Guid.NewGuid().ToString(),
+                Users = new SelectList(_usersRepository.Users.ToList(), "Id", "Name", UserId),
+                ReturnURL = returnUrl ?? Url.Content("~") + "?ctr=MultimediaObjects&act=index",
+                h = multimediaObject.Type.Height,
+                w = multimediaObject.Type.Width,
+                x = 0,
+                y = 0
+            };
 
-			// Zbuduj i zwróć model
-			var viewModel = new MultimediaObjectViewModel
-			{
-				MultimediaObject = multimediaObject ?? new MultimediaObject
-				{
-					FileName = "brak",
-					MimeType = "brak",
-					Url = user.Url
-				},
-				MultimediaTypes = new SelectList(t, "Value", "Text"),
-				Guid = Guid.NewGuid().ToString(),
-				Users = new SelectList(_usersRepository.Users.ToList(), "Id", "Name", UserId),
-				ReturnURL = returnUrl ?? Url.Content("~") + "?ctr=MultimediaObjects&act=index" 
-				
-			};
+            viewModel.MultimediaObject.Campaigns = new List<Campaign>();
 
-			// Zapamietaj maksymalny rozmiar obiektu JSON do komunikacji z serwerem
-			ViewBag.MaxJsonLength = UploadController.GetJsonMaxLength();
+            // Zapamietaj maksymalny rozmiar obiektu JSON do komunikacji z serwerem
+            ViewBag.MaxJsonLength = UploadController.GetJsonMaxLength();
 
-			return View(viewModel);
+            return View(viewModel);
 		}
 
 		/// <summary>
@@ -189,6 +197,105 @@ namespace ADServerManagementWebApplication.Controllers
 			}
 			return RedirectToAction("Index", "Default", new {ctr = "MultimediaObjects"});
 		}
+
+        public ActionResult Add(int? id, string returnUrl)
+        {
+            var ids = User.GetUserIDInt();
+            var u = _usersRepository.Users.Single(it => it.Id == ids);
+            ViewBag.AdPoints = u.AdPoints;
+
+            if (id != null)
+            {
+                id = UserRole == "Admin" || _repository.MultimediaObjects.FirstOrDefault(it => it.Id == id && it.UserId == UserId) != null ? id : 0;
+            }
+            // Pobierz obiekt z repozytorium
+            var multimediaObject = _repository.GetById(id ?? 0);
+
+            var user = _usersRepository.Users.Single(it => it.Id == UserId);
+            var t =
+                _typeRespository.Types.Select(it => new { Value = it.Id, Text = it.Name + " szer: " + it.Width + "px wys: " + it.Height + "px" });
+
+            // Zbuduj i zwróć model
+            var viewModel = new CropAndAddMultimediaObjectViewModel
+            {
+                MultimediaObject = multimediaObject ?? new MultimediaObject
+                {
+                    FileName = "brak",
+                    MimeType = "brak",
+                    Url = user.Url
+                },
+                MultimediaTypes = new SelectList(t, "Value", "Text"),
+                Guid = Guid.NewGuid().ToString(),
+                Users = new SelectList(_usersRepository.Users.ToList(), "Id", "Name", UserId),
+                ReturnURL = returnUrl ?? Url.Content("~") + "?ctr=MultimediaObjects&act=index"
+
+            };
+          
+            // Zapamietaj maksymalny rozmiar obiektu JSON do komunikacji z serwerem
+            ViewBag.MaxJsonLength = UploadController.GetJsonMaxLength();
+
+            return View(viewModel);
+        }
+
+        [AdServerActionExceptionAttribute]
+        [HttpPost]
+        public ActionResult Add(CropAndAddMultimediaObjectViewModel Model)
+        {
+            if(ModelState.IsValid)
+            {
+                if(string.IsNullOrEmpty(Model.MultimediaObject.Url))
+                {
+                    ModelState.AddModelError("MultimediaObject.Url", "Podanie Adresu URL jest wymagane!");
+                    var tt =
+                _typeRespository.Types.Select(it => new { Value = it.Id, Text = it.Name + " szer: " + it.Width + "px wys: " + it.Height + "px" });
+                    Model.MultimediaTypes = new SelectList(tt, "Value", "Text");
+                    return View(Model);
+                    
+                }
+
+                int cropPointX = Model.x; int cropPointY = Model.y; int imageCropWidth = Model.w; int imageCropHeight = Model.h;
+                MemoryStream target = new MemoryStream();
+                Model.inputFile.InputStream.CopyTo(target);
+                byte[] imageBytes = target.ToArray();
+                byte[] croppedImage;
+                if (imageCropHeight > 0 && imageCropWidth > 0)
+                {
+                    croppedImage = ImageHelper.CropImage(imageBytes, cropPointX, cropPointY, imageCropWidth, imageCropHeight);
+                }
+                else
+                {
+                    croppedImage = imageBytes;
+                }
+
+                ADServerDAL.Models.Type type = _typeRespository.GetById((int)Model.MultimediaObject.TypeId);
+                croppedImage = ImageProcesorHelper.ResizeImage(type.Width, type.Height, croppedImage, false).ResizedImage;
+
+                MultimediaObject image = new MultimediaObject
+                {
+                    Contents = croppedImage,
+                    Content = croppedImage,
+                    FileName = Model.inputFile.FileName,
+                    MimeType = Model.inputFile.ContentType,
+                    TypeId = Model.MultimediaObject.TypeId,
+                    Name = Model.MultimediaObject.Name,
+                    UserId = User.GetUserIDInt(),
+                    Url = Model.MultimediaObject.Url,
+                    Campaigns= Model.MultimediaObject.Campaigns
+                };
+                
+                if (image.UserId == 0 || (!User.IsInRole("Admin") && User.GetUserIDInt() != image.UserId))
+                    image.UserId = User.GetUserIDInt();
+
+                _repository.Save(image,Model.MultimediaObject.Campaigns.ToList());
+
+                return RedirectToAction("Index");
+            }
+            var t =
+                _typeRespository.Types.Select(it => new { Value = it.Id, Text = it.Name + " szer: " + it.Width + "px wys: " + it.Height + "px" });
+            Model.MultimediaTypes = new SelectList(t, "Value", "Text");
+            return View(Model);
+        }
+
 		#endregion
 
 		#region - Overriden methods -
@@ -258,5 +365,5 @@ namespace ADServerManagementWebApplication.Controllers
 			return (T)filter1;
 		}
 		#endregion
-	}
+    }
 }

@@ -63,7 +63,7 @@ function RefreshConnectedCampaignsUI() {
 		var viewValue = connectedCampaigns[i].ViewValue;
 
 		if (nameFilter == null || nameFilter.length == 0 || name.toLowerCase().indexOf(nameFilter.toLowerCase()) != -1) {
-			var row = '<tr><td class="text-center" width="10%"> <input name="campaign.' + id + '" type="checkbox" class="selectionCB" /></td><td class="text-right">' + id + '</td><td class="text-left">' + name + '</td><td  class="text-center"><input type="checkbox" ' + checked + ' disabled="disabled" /></td><td  class="text-right">' + startDate + '</td><td  class="text-right">' + endDate + '</td><td  class="text-right">' + viewValue + '</td><td  class="text-right">' + clickValue + '</td></tr>';
+		    var row = '<tr><td class="text-center" width="10%"><input type="hidden" name="MultimediaObject.Campaigns[' + i + '].Id" value="' + id + '"><input type="hidden" name="MultimediaObject.Campaigns[' + i + '].Name" value="' + name + '"> <input name="campaign.' + id + '" type="checkbox" class="selectionCB" /></td><td class="text-right">' + id + '</td><td class="text-left">' + name + '</td><td  class="text-center"><input type="checkbox" ' + checked + ' disabled="disabled" /></td><td  class="text-right">' + startDate + '</td><td  class="text-right">' + endDate + '</td><td  class="text-right">' + viewValue + '</td><td  class="text-right">' + clickValue + '</td></tr>';
 			$('#connectedCampaignsTable').append(row);
 		}
 	}

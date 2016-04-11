@@ -337,7 +337,7 @@ namespace WebServiceADContentProvider
 
 							}
 
-							response.File = mos.GetMultimediaObject(selectionRequest, filestreamOption, out err);
+							response.File = mos.GetMultimediaObject(selectionRequest, filestreamOption,true, out err);
 
 							if (err != null && err.Count > 0)
 							{

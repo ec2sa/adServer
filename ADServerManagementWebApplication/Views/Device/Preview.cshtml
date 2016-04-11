@@ -1,11 +1,20 @@
 ﻿@model  ADServerDAL.Models.Device
 
+@if (Request.Url.Host == "localhost")
+{
+    ViewBag.port = ":" + Request.Url.Port;
+}
+else
+{
+    ViewBag.port = "";
+}
+
 @{
 	ViewBag.Title = "Podgląd zastosowania nośnika dla identyfikatora nr : " + @Model.Id;
 	Layout = "~/Views/Shared/_Layout.cshtml";
-	ViewBag.HTMLControl = string.Format(@"<a href=""{6}://{7}{0}?id={1}"" target=""_blank"">{2}	<img id=""imgPreview"" width=""{3}"" height=""{4}"" src=""{6}://{7}{5}?id={1}"" alt=""Ad"">{2}</a>", @Url.Content("~/Ad/URL"), @Model.Id, Environment.NewLine, Model.Type.Width, Model.Type.Height, @Url.Content("~/Ad"), Request.Url.Scheme, Request.Url.Host);
+    ViewBag.HTMLControl = string.Format(@"<a href=""{6}://{7}{8}{0}?id={1}"" target=""_blank"">{2}	<img id=""imgPreview"" width=""{3}"" height=""{4}"" src=""{6}://{7}{8}{5}?id={1}"" alt=""Ad"">{2}</a>", @Url.Content("~/Ad/URL"), @Model.Id, Environment.NewLine, Model.Type.Width, Model.Type.Height, @Url.Content("~/Ad"), Request.Url.Scheme, Request.Url.Host, ViewBag.port);
 	//ViewBag.HTMLControl = @"<a href=""" + @Url.Action("URL","Ad") +"?id=" + @Model.Id + @""" target=""_blank"">" + Environment.NewLine+"\t" + @"<img id=""imgPreview"" width=""" + @Model.Type.Width + @""" height=""" + @Model.Type.Height + @""" src=""http://demo.ec2.pl/AD?&Id=" + @Model.Id + @""" alt=""Ad"">" + System.Environment.NewLine + @"</a>";
-}
+    }
 
 @section HeaderScripts
 {
@@ -32,6 +41,8 @@
 					<li><a href="#tabs-3">Aplikacja Windows XAML </a></li>
 				</ul>
 				<div id="tabs-1">
+                    @if(Model.Type.MultimediaObjects.Count > 0)
+                    { 
 					<p>Wyświetlenie reklamy odbywa się poprzez wklejenie poniższego kodu HTML</p>
 					<div>
 						<?prettify?><pre class="prettyprint">@ViewBag.HTMLControl</pre>
@@ -40,6 +51,21 @@
 					<div>
 						@Html.Raw(ViewBag.HTMLControl)
 					</div>
+                    }
+                    else
+                    {
+                        <p style="font-weight:bold">Nie znaleziono obiektu pasującego do nośnika.</p>
+                        <p>Obiekt musi posiadać:<br />
+                           <i>Szerokość: @Model.Type.Width px</i><br />
+                           <i>Wysokość: @Model.Type.Height px</i><br /><br />
+                           <i>Minimum jedną z Kampanii nośnika:</i></p>
+                        foreach(var c in Model.Campaigns)
+                        {
+                            <p><i>@c.Name</i></p>
+                        }
+                        
+                        @Html.ActionLink("Utwórz nowy obiekt", "Add", "MultimediaObjects", null, new { @class = "btn btn-success" })
+                    }
 				</div>
 				<div id="tabs-2">
 					<div>

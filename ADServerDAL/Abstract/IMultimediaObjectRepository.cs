@@ -30,7 +30,7 @@ namespace ADServerDAL.Abstract
         /// Zapisuje obiekt multimedialny do bazy
         /// </summary>
         /// <param name="multimediaObject">Obiekt multimedialny</param>
-        ApiResponse Save(MultimediaObject multimediaObject);
+        ApiResponse Save(MultimediaObject multimediaObject, List<Campaign> Camps);
 
         /// <summary>
         /// Zwraca obiekt multimedialny na podstawie identyfikatora
@@ -55,5 +55,10 @@ namespace ADServerDAL.Abstract
         /// </summary>
         /// <param name="context">Nowy kontekst EF</param>
         void SetContext(System.Data.Entity.DbContext context);
+
+        int GetIntFromCamName(string name);
+        MultimediaObject GetFromCamName(string name);
+        MultimediaObject GetByCampAndType(Device device);
+        ApiResponse CropAndSave(int id, byte[] Image);
     }
 }

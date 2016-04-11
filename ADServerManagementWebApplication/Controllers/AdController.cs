@@ -11,6 +11,7 @@ using ADServerDAL.Concrete;
 using ADServerDAL.Entities;
 using ADServerDAL.Helpers;
 using ADServerDAL.Models;
+using System.Web.Security;
 
 namespace ADServerManagementWebApplication.Controllers
 {
@@ -70,18 +71,26 @@ namespace ADServerManagementWebApplication.Controllers
 					try
 					{
 						var mos = new MultimediaObjectSelection(repositories);
-						List<string> err;
+                        List<string> err = new List<string>();
 
 						const string key = "FILESTREAM_OPTION";
 						var urlKey = ConfigurationManager.AppSettings[key];
 
 						bool filestreamOption = false;
-						if (urlKey != null && !string.IsNullOrEmpty(urlKey))
-						{
-							bool.TryParse(urlKey, out filestreamOption);
-						}
+                        if (urlKey != null && !string.IsNullOrEmpty(urlKey))
+                        {
+                            bool.TryParse(urlKey, out filestreamOption);
+                        }
 
-						AdFile response = mos.GetMultimediaObject(selectionRequest, filestreamOption, out err);
+                        bool add = true;
+                        if (Request.UrlReferrer != null)
+                        {
+                            if (Request.Url.Host == Request.UrlReferrer.Host)
+                            {
+                                add = false;
+                            }
+                        }
+						AdFile response = mos.GetMultimediaObject(selectionRequest, filestreamOption,add, out err);
 						cookie.Values.Add("cmp", response.CmpId.ToString());
 
 						if (err != null && err.Count > 0)
@@ -132,8 +141,8 @@ namespace ADServerManagementWebApplication.Controllers
 		{
 			var nameCookie = "AdServer" + viewId;
 			var cookie = Request.Cookies[nameCookie];
-			if (cookie == null)
-				return Redirect("http://" + Request.Url.Authority);
+            //if (cookie == null)
+            //    return Redirect("http://" + Request.Url.Authority);
 			using (var ctx = new AdServContext())
 			{
 				var repositories = EFRepositorySet.CreateRepositorySet(ctx);
@@ -162,9 +171,17 @@ namespace ADServerManagementWebApplication.Controllers
 						bool.TryParse(urlKey, out filestreamOption);
 					}
 
-					var response = mos.GetMmObjectUrl(int.Parse(cookie.Values["Id"]), int.Parse(cookie.Values["StatusCode"]), int.Parse(cookie.Values["cmp"]), selectionRequest);
-					if (response != null)
-						return Redirect(response);
+                    bool add = true;
+                    if (Request.UrlReferrer != null)
+                    {
+                        if (Request.Url.Host == Request.UrlReferrer.Host)
+                        {
+                            add = false;
+                        }
+                    }
+                    var response = mos.GetMmObjectUrl(int.Parse(cookie.Values["Id"]), int.Parse(cookie.Values["StatusCode"]), int.Parse(cookie.Values["cmp"]), selectionRequest,add);
+                        if (response != null)
+                            return Redirect(response);
 					Redirect(Request.Url.Authority);
 				}
 				catch

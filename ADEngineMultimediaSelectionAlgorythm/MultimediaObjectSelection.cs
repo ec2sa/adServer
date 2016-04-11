@@ -103,14 +103,17 @@ namespace ADEngineMultimediaSelectionAlgorythm
 		/// <param name="filestream">Określa czy pliki mają być pobierane z FILESTREAM</param>
 		/// <param name="validationErrors">Lista błędów</param>
 		/// <returns>Obiekt multimedialny do wyświetlenia w kliencie</returns>
-		public AdFile GetMultimediaObject(MultimediaObjectsSelectionParams request, bool filestream, out List<string> validationErrors)
+        public AdFile GetMultimediaObject(MultimediaObjectsSelectionParams request, bool filestream, bool add, out List<string> validationErrors)
 		{
 			var result = FindMultimediaObject(request, filestream, out validationErrors);
 
 			if (result != null)
 			{
 				result.Contents = _repositories.MultimediaObjectRepository.GetById(result.ID).Contents;
-				SaveStatisticsEntry(request, result);
+                if (add)
+                {
+                    SaveStatisticsEntry(request, result);
+                }
 			}
 
 			return result;
@@ -123,10 +126,13 @@ namespace ADEngineMultimediaSelectionAlgorythm
 		/// <param name="statusCode">Priorytet</param>
 		/// <param name="request">Parametry opisujące request, na podstawie których zostanie wybrany odpowiedni obiekt multimedialny</param>
 		/// <returns>URL obiektu multimedialnego</returns>
-		public string GetMmObjectUrl(int id, int statusCode,int cmp, MultimediaObjectsSelectionParams request)
+		public string GetMmObjectUrl(int id, int statusCode,int cmp, MultimediaObjectsSelectionParams request, bool Add)
 		{
 			var obj = _repositories.MultimediaObjectRepository.GetById(id);
-			SaveStatisticsEntry(request, new AdFile { ID = obj.Id, StatusCode = statusCode, CmpId = cmp}, true);
+            if (Add)
+            {
+                SaveStatisticsEntry(request, new AdFile { ID = obj.Id, StatusCode = statusCode, CmpId = cmp }, true);
+            }
 
 			return obj.Url;
 		}
@@ -188,8 +194,11 @@ namespace ADEngineMultimediaSelectionAlgorythm
 
 			var now = DateTime.Now.Date;
 			// wyszukujemy obiekty multimedialne spełniające kryteria określone w parametrach metody
-			var dev = _repositories.DeviceRepository.Devices
-							.SingleOrDefault(it => it.Id == selectionParams.ID);
+            var dev = _repositories.DeviceRepository.Devices
+                            .SingleOrDefault(it => it.Id == selectionParams.ID);
+
+            //var dev = _repositories.DeviceRepository.Devices.FirstOrDefault(m => m.Id == selectionParams.ID);
+
 			if (dev == null)
 				return null;
 			
